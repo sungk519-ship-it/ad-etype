@@ -74,7 +74,6 @@
 
   <div class="max-w-[1700px] mx-auto px-4 sm:px-6 pt-5">
     
-    <!-- Top System Header -->
     <header class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-4 sm:p-5 shadow-xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
         <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 text-xl font-bold shrink-0">
@@ -127,7 +126,6 @@
       </div>
     </header>
 
-    <!-- Allocation Priority Mode Bar -->
     <section class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-3.5 sm:p-4 shadow-xs mb-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -145,7 +143,6 @@
       </div>
     </section>
 
-    <!-- 4 Core KPI Metric Cards -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
       <!-- 1. Total Buildable -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
@@ -220,7 +217,6 @@
       </div>
     </section>
 
-    <!-- Company Allocation Breakdown Cards -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-4">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -239,7 +235,6 @@
       </div>
     </section>
 
-    <!-- 8 Essential Assembly BOM Parts Grid -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3">
         <div class="flex items-center gap-2">
@@ -258,7 +253,6 @@
       </div>
     </section>
 
-    <!-- Search & Filter Bar -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-xs mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center flex-wrap gap-2.5">
         <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
@@ -278,7 +272,6 @@
       </div>
     </section>
 
-    <!-- Main Inventory Table -->
     <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden mb-6">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs border-collapse">
@@ -301,7 +294,6 @@
       </div>
     </section>
 
-    <!-- Transaction History Section -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
         <div>
@@ -642,21 +634,20 @@
       }
     };
 
-    // Google Apps Script Web App URL Permanently Hardcoded (새로 발급된 URL로 업데이트)
+    // Current Google Apps Script Web App URL
     const GSHEET_URL = 'https://script.google.com/macros/s/AKfycbxc9Rqe6TfXyzG5kCj7H9zJklFztAsQpDB5XMROpyu8JjsCdpDNCYMFJS8xSnMCmlx5jg/exec';
-    const DATA_VERSION = '20261002_AD_ETYPE_CANVAS_V12_BULLETPROOF';
 
-    // Exact 15 Items Baseline Data
+    // Exact 15 Items Baseline matching user's active 482 SET PC state
     const INITIAL_INVENTORY = [
-      { id: 1, category: "반제품 SET", company: "공통", name: "반제품", total: 502, defect: 0, good: 502, note: "- QR 1\n- 오차, 펌웨어 완료" },
+      { id: 1, category: "반제품 SET", company: "공통", name: "반제품", total: 457, defect: 0, good: 457, note: "- QR 1\n- 오차, 펌웨어 완료" },
       { id: 2, category: "반제품 SET", company: "공통", name: "반제품", total: 25, defect: 0, good: 25, note: "- QR 9\n- 오차 완료" },
-      { id: 3, category: "TOP COVER", company: "공통", name: "탑 커버", total: 601, defect: 0, good: 601, note: "- 어두운색" },
+      { id: 3, category: "TOP COVER", company: "공통", name: "탑 커버", total: 556, defect: 0, good: 556, note: "- 어두운색" },
       { id: 4, category: "TOP COVER", company: "공통", name: "탑 커버", total: 33, defect: 0, good: 33, note: "- 밝은색" },
       { id: 5, category: "TOP COVER", company: "세진", name: "단자 커버", total: 877, defect: 0, good: 877, note: "" },
-      { id: 6, category: "TOP COVER", company: "이브이쓰루", name: "단자 커버", total: 1118, defect: 0, good: 1118, note: "" },
+      { id: 6, category: "TOP COVER", company: "이브이쓰루", name: "단자 커버", total: 1073, defect: 0, good: 1073, note: "" },
       { id: 7, category: "TOP COVER", company: "공통", name: "단자 커버", total: 46, defect: 0, good: 46, note: "- 무지" },
-      { id: 8, category: "포장용", company: "공통", name: "박스(소)", total: 582, defect: 0, good: 582, note: "" },
-      { id: 9, category: "포장용", company: "공통", name: "박스(대)", total: 0, defect: 0, good: 0, note: "" },
+      { id: 8, category: "포장용", company: "공통", name: "박스(소)", total: 2882, defect: 0, good: 2882, note: "" },
+      { id: 9, category: "포장용", company: "공통", name: "박스(대)", total: 360, defect: 0, good: 360, note: "" },
       { id: 10, category: "포장용", company: "공통", name: "모뎀커버(소)", total: 2941, defect: 0, good: 2941, note: "" },
       { id: 11, category: "포장용", company: "공통", name: "모뎀커버(대)", total: 3000, defect: 0, good: 3000, note: "" },
       { id: 12, category: "포장용", company: "공통", name: "조견표", total: 1600, defect: 0, good: 1600, note: "" },
@@ -685,16 +676,6 @@
 
     function loadState() {
       try {
-        const storedVersion = SafeStorage.getItem('ad_etype_version');
-        if (storedVersion !== DATA_VERSION) {
-          inventory = JSON.parse(JSON.stringify(INITIAL_INVENTORY));
-          historyLedger = [];
-          allocationPolicy = 'COMPANY_이브이쓰루';
-          SafeStorage.setItem('ad_etype_version', DATA_VERSION);
-          saveState();
-          return;
-        }
-
         const savedInv = SafeStorage.getItem('ad_etype_inventory');
         const savedHist = SafeStorage.getItem('ad_etype_history');
         const savedPolicy = SafeStorage.getItem('ad_etype_policy');
@@ -738,7 +719,6 @@
         if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
         if (icon) icon.classList.remove('fa-spin');
       } else {
-        // Safe local standby without scary alarm
         badge.className = 'text-[11px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-200 transition-all cursor-pointer';
         textEl.textContent = text || '로컬 정상 작동 중 (시트 대기)';
         if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500';
@@ -772,18 +752,17 @@
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 250);
-      }, 3500);
+      }, 3200);
     }
 
     function isAnyModalOpen() {
-      const modalIds = ['actionModal', 'addItemModal', 'editItemModal', 'editHistoryModal', 'safeConfirmModal', 'excelPreviewModal'];
+      const modalIds = ['actionModal', 'addItemModal', 'editItemModal', 'editHistoryModal', 'excelPreviewModal', 'safeConfirmModal'];
       return modalIds.some(id => {
         const el = document.getElementById(id);
         return el && !el.classList.contains('hidden');
       });
     }
 
-    // Pull Latest Data from Google Sheet with 6s Timeout
     async function pullFromGoogleSheet(manual = false) {
       if (isSyncing) return;
       if (!manual && isAnyModalOpen()) return;
@@ -792,10 +771,11 @@
       updateSyncBadge('syncing', manual ? '시트 최신 데이터 수신 중...' : '동기화 확인 중...');
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       try {
-        const res = await fetch(GSHEET_URL, { 
+        const cacheBusterUrl = `${GSHEET_URL}${GSHEET_URL.includes('?') ? '&' : '?'}_t=${Date.now()}`;
+        const res = await fetch(cacheBusterUrl, { 
           method: 'GET', 
           redirect: 'follow',
           signal: controller.signal
@@ -805,52 +785,68 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         const json = await res.json();
-        if (json && json.status === 'success') {
-          if (Array.isArray(json.inventory) && json.inventory.length > 0) {
-            inventory = json.inventory;
-            inventory.forEach((item, idx) => {
-              if (item.id == null) item.id = idx + 1;
-            });
-            if (Array.isArray(json.historyLedger)) {
-              historyLedger = json.historyLedger;
-            }
-            if (json.allocationPolicy) {
-              allocationPolicy = json.allocationPolicy;
-            }
-            saveState();
-            updateFilterOptions();
-            renderAll();
-            
-            const now = new Date();
-            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-            updateSyncBadge('success', `구글 시트 연동 정상 (${timeStr})`);
-            if (manual) showToast('구글 시트의 최신 재고 데이터를 동기화했습니다!', 'success');
-          } else {
-            // First time empty sheet: auto-initialize with baseline 15 items
-            updateSyncBadge('syncing', '시트 데이터 초기화 중...');
-            await pushToGoogleSheet(true);
-            updateSyncBadge('success', '시트 초기화 완료 (15개 품목 연동)');
-            if (manual) showToast('구글 시트에 기준 15개 품목 데이터를 전송했습니다.', 'success');
+        let receivedInv = null;
+        let receivedHist = null;
+        let receivedPolicy = null;
+
+        if (json) {
+          if (Array.isArray(json.inventory)) {
+            receivedInv = json.inventory;
+            receivedHist = json.historyLedger;
+            receivedPolicy = json.allocationPolicy;
+          } else if (Array.isArray(json)) {
+            receivedInv = json;
+          }
+        }
+
+        if (Array.isArray(receivedInv) && receivedInv.length > 0) {
+          inventory = receivedInv;
+          inventory.forEach((item, idx) => {
+            if (item.id == null) item.id = idx + 1;
+          });
+          if (Array.isArray(receivedHist)) {
+            historyLedger = receivedHist;
+          }
+          if (receivedPolicy) {
+            allocationPolicy = receivedPolicy;
+          }
+          saveState();
+          updateFilterOptions();
+          renderAll();
+          
+          const now = new Date();
+          const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+          updateSyncBadge('success', `구글 시트 연동 정상 (${timeStr})`);
+          if (manual) {
+            const asm = calculateAssembly();
+            showToast(`구글 시트 동기화 완료! (완제품 ${asm.totalBuildable} SET)`, 'success');
           }
         } else {
-          updateSyncBadge('local', '로컬 정상 작동 중');
+          // If sheet is empty but local has data, upload local data to initialize sheet
+          if (inventory && inventory.length > 0) {
+            updateSyncBadge('syncing', '시트 데이터 동기화 업로드 중...');
+            await pushToGoogleSheet(true);
+            updateSyncBadge('success', '구글 시트 연동 정상');
+          } else {
+            updateSyncBadge('local', '로컬 정상 작동 중');
+          }
         }
       } catch (err) {
         clearTimeout(timeoutId);
         updateSyncBadge('local', '로컬 가용 상태 (시트 대기)');
         if (manual) {
-          showToast('현재 미리보기 환경에서는 로컬 데이터로 작동하며, GitHub Pages 웹 주소에서는 시트와 직접 동기화됩니다.', 'info');
+          showToast('시트 응답 대기 중입니다. 잠시 후 [시트 최신화]를 다시 눌러주세요.', 'warning');
         }
       } finally {
         isSyncing = false;
       }
     }
 
-    // Push Updated Data to Google Sheet
     async function pushToGoogleSheet(silent = false) {
       if (!silent) updateSyncBadge('syncing', '구글 시트로 저장 중...');
       try {
         const payload = {
+          status: "success",
           inventory,
           historyLedger,
           allocationPolicy,
@@ -872,11 +868,32 @@
       }
     }
 
-    // Force push current screen data to Google Sheet manually
     async function forcePushToSheet() {
-      showToast('현재 재고 데이터를 구글 시트에 전송 중...', 'info');
-      await pushToGoogleSheet(false);
-      showToast('현재 재고 및 수불대장이 성공적으로 저장되었습니다!', 'success');
+      const asm = calculateAssembly();
+      showToast(`현재 재고(${asm.totalBuildable} SET)를 구글 시트에 전송 중...`, 'info');
+      updateSyncBadge('syncing', '구글 시트로 저장 중...');
+      try {
+        const payload = {
+          status: "success",
+          inventory,
+          historyLedger,
+          allocationPolicy,
+          timestamp: new Date().toISOString()
+        };
+        await fetch(GSHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        updateSyncBadge('success', `구글 시트 저장 완료 (${timeStr})`);
+        showToast(`구글 시트에 ${asm.totalBuildable} SET 재고가 성공적으로 등록되었습니다!`, 'success');
+      } catch (err) {
+        updateSyncBadge('local', '로컬 보관 중 (시트 대기)');
+        showToast('구글 시트 전송 중 오류가 발생했습니다.', 'error');
+      }
     }
 
     function openSafeConfirm({ title, message, onConfirm }) {
@@ -974,7 +991,7 @@
 
       const totalBuildable = Math.min(sharedMinLimit, totalDedicatedCover);
 
-      let bottleneckPartName = '박스(대)';
+      let bottleneckPartName = '반제품 (전체)';
       let minLimitFound = Infinity;
       sharedParts.forEach(p => {
         if (p.effectiveLimit < minLimitFound) {
@@ -2391,10 +2408,9 @@
         loadState();
         updateFilterOptions();
         renderAll();
-        // 1. First passive pull
         pullFromGoogleSheet(false);
 
-        // 2. Periodic sync every 25 seconds
+        // Periodic sync poll every 25 seconds
         setInterval(() => {
           pullFromGoogleSheet(false);
         }, 25000);
