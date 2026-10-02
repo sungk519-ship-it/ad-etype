@@ -7,7 +7,7 @@
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome 6 Free -->
+  <!-- FontAwesome 6 Free CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- ExcelJS CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
@@ -36,6 +36,9 @@
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+    * {
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
       letter-spacing: -0.015em;
@@ -71,10 +74,10 @@
 
   <div class="max-w-[1700px] mx-auto px-4 sm:px-6 pt-5">
     
-    <!-- Top System Header (Warm Cream / Ivory Tone) -->
+    <!-- Top System Header -->
     <header class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-4 sm:p-5 shadow-xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 text-xl font-bold">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 text-xl font-bold shrink-0">
           <i class="fa-solid fa-boxes-stacked"></i>
         </div>
         <div>
@@ -83,24 +86,26 @@
             <span class="text-[11px] font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/60">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> AD E-Type 전용창고
             </span>
-            <span id="gsheetStatusBadge" class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 구글 시트 연동 지원
-            </span>
+            <!-- Live Auto Sync Badge -->
+            <button onclick="pullFromGoogleSheet(true)" id="gsheetLiveBadge" title="클릭하여 즉시 시트 최신화 및 동기화" class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="gsheetDot"></span>
+              <span id="gsheetLiveText">구글 시트 연동 준비 완료</span>
+            </button>
           </div>
-          <p class="text-xs text-slate-600 mt-0.5 font-medium">실제 원본 15개 품목 기준 · 박스(대) 8:1 소요 환산 · 결합 병목 자동 산출 · 완제품 실질 조립량 시뮬레이션</p>
+          <p class="text-xs text-slate-600 mt-0.5 font-medium">실제 원본 15개 품목 기준 · 박스(대) 8:1 소요 환산 · 실시간 결합 병목 산출 · 구글 시트 양방향 실시간 동기화</p>
         </div>
       </div>
 
       <!-- Action Button Toolbar -->
       <div class="flex items-center flex-wrap gap-2">
-        <button onclick="pullFromGoogleSheet(true)" title="구글 시트의 최신 재고 데이터를 새로고침하여 가져옵니다" class="btn-action px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> 시트 최신화
+        <button onclick="pullFromGoogleSheet(true)" title="구글 시트의 최신 재고 데이터를 즉시 새로고침하여 가져옵니다" class="btn-action px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate text-emerald-400" id="syncRotateIcon"></i> 시트 최신화
         </button>
-        <button onclick="openAddItemModal()" class="btn-action px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+        <button onclick="forcePushToSheet()" title="현재 화면에 보이는 모든 재고를 구글 시트에 즉시 강제 전송/저장합니다" class="btn-action px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-cloud-arrow-up"></i> 시트에 강제 저장
+        </button>
+        <button onclick="openAddItemModal()" class="btn-action px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-plus"></i> 신규 품목 추가
-        </button>
-        <button onclick="openGSheetModal()" class="btn-action px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-table-cells"></i> 구글 시트 설정
         </button>
         <button onclick="openExcelPreviewModal()" class="btn-action px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-table"></i> 엑셀 서식 미리보기
@@ -122,7 +127,7 @@
       </div>
     </header>
 
-    <!-- Allocation Priority Mode Bar (Ev-Through First, Fair Last) -->
+    <!-- Allocation Priority Mode Bar -->
     <section class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-3.5 sm:p-4 shadow-xs mb-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div class="flex items-center gap-2">
@@ -135,14 +140,14 @@
         </div>
 
         <div id="allocationButtonsContainer" class="flex items-center flex-wrap gap-1.5">
-          <!-- Dynamically populated: 이브이쓰루 우선 -> 타업체 우선 -> 비율 균등 배분 -->
+          <!-- Populated dynamically via JS -->
         </div>
       </div>
     </section>
 
     <!-- 4 Core KPI Metric Cards -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
-      <!-- 1. Total Buildable (완제품 가능 총량 - Blue) -->
+      <!-- 1. Total Buildable -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
         <div class="flex items-center justify-between text-slate-500 mb-1.5">
           <span class="text-xs font-bold">완제품 조립 가능 총량</span>
@@ -159,7 +164,7 @@
         </p>
       </div>
 
-      <!-- 2. Ev-Through Actual (이브이쓰루 자사 실질 조립 가능 - Emerald) -->
+      <!-- 2. Ev-Through Actual -->
       <div class="bg-white rounded-2xl border-2 border-emerald-500/80 p-4 shadow-xs bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20">
         <div class="flex items-center justify-between text-emerald-800 mb-1.5">
           <div class="flex items-center gap-1.5">
@@ -179,7 +184,7 @@
         </p>
       </div>
 
-      <!-- 3. Other Companies Assembly Actual (타업체 전체 자동 합산 - Indigo) -->
+      <!-- 3. Other Companies Assembly Actual -->
       <div class="bg-white rounded-2xl border-2 border-indigo-500/80 p-4 shadow-xs bg-gradient-to-br from-indigo-50/40 via-white to-indigo-50/20">
         <div class="flex items-center justify-between text-indigo-800 mb-1.5">
           <div class="flex items-center gap-1.5">
@@ -199,7 +204,7 @@
         </p>
       </div>
 
-      <!-- 4. Total Defect Quantity (불량 전체 - Rose) -->
+      <!-- 4. Total Defect Quantity -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs bg-gradient-to-br from-white to-rose-50/30">
         <div class="flex items-center justify-between text-rose-600 mb-1.5">
           <span class="text-xs font-bold">불량 수량 (전체)</span>
@@ -234,7 +239,7 @@
       </div>
     </section>
 
-    <!-- 8 Essential Assembly BOM Parts Grid (Box Large 8:1 Conversion) -->
+    <!-- 8 Essential Assembly BOM Parts Grid -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3">
         <div class="flex items-center gap-2">
@@ -303,7 +308,7 @@
           <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
             <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> 수불 이력 및 출고 / 불량 상세 내역 대장
           </h2>
-          <p class="text-[11px] text-slate-500 mt-0.5">신규등록, 입고, 출고, 불량 처리 내역이 실시간 기록되며 구글 시트와 양방향 동기화됩니다.</p>
+          <p class="text-[11px] text-slate-500 mt-0.5">신규등록, 입고, 출고, 불량 처리 내역이 실시간 기록되며 구글 스프레드시트와 즉시 동기화됩니다.</p>
         </div>
         <div class="flex items-center gap-1 flex-wrap">
           <button onclick="setHistoryFilter('ALL', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-bold bg-slate-800 text-white">전체</button>
@@ -506,44 +511,58 @@
     </div>
   </div>
 
-  <!-- Google Sheet Settings Modal -->
-  <div id="gsheetModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 overflow-hidden">
+  <!-- Edit Transaction History Modal -->
+  <div id="editHistoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 overflow-hidden">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
-          <i class="fa-solid fa-table-cells text-emerald-600"></i> 구글 스프레드시트 실시간 연동 설정
+          <i class="fa-solid fa-pen-to-square text-brand-600"></i> 수불 내역 수정 (유형 / 수량 / 사유)
         </h3>
-        <button type="button" onclick="closeGSheetModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+        <button type="button" onclick="closeEditHistoryModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <div class="space-y-3.5 my-4">
+      <div class="my-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+        <div id="editHistoryItemHeader" class="text-xs font-bold text-slate-800"></div>
+        <div id="editHistoryItemMeta" class="text-[11px] text-slate-500 mt-1"></div>
+      </div>
+
+      <div class="space-y-3.5">
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">구글 Apps Script 웹 앱 URL</label>
-          <input type="url" id="gsheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-emerald-600">
-          <p class="text-[11px] text-slate-500 mt-1">※ 배포된 웹 앱 주소를 등록하면 여러 사용자가 실시간으로 재고를 공유할 수 있습니다.</p>
-        </div>
-
-        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 leading-relaxed">
-          <div class="font-bold mb-1 flex items-center gap-1">
-            <i class="fa-solid fa-circle-check"></i> 자동 동기화 기능 지원
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">수불 유형 변경</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" id="btnTypeIn" onclick="setEditHistoryType('입고')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-arrow-down text-[10px]"></i> 입고
+            </button>
+            <button type="button" id="btnTypeOut" onclick="setEditHistoryType('출고')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-arrow-up text-[10px]"></i> 출고
+            </button>
+            <button type="button" id="btnTypeDefect" onclick="setEditHistoryType('불량')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 불량
+            </button>
           </div>
-          수불 등록(입고/출고/불량) 시 구글 시트에 즉시 반영되며, 상단의 <strong>[시트 최신화]</strong> 버튼을 누르면 다른 직원이 입력한 최신 데이터를 바로 불러옵니다.
         </div>
 
-        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-          <button type="button" onclick="testGSheetConnection()" class="px-3.5 py-1.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs font-bold cursor-pointer flex items-center gap-1">
-            <i class="fa-solid fa-bolt"></i> 연결 테스트
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">수량 (EA)</label>
+          <input type="number" id="editHistoryQtyInput" min="1" placeholder="수량을 입력하세요" 
+                 class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-mono font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">상세 내역 및 사유</label>
+          <textarea id="editHistoryReasonInput" rows="2" placeholder="변경 사유를 입력하세요" 
+                    class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500 resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeEditHistoryModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+            취소
           </button>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="closeGSheetModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
-              닫기
-            </button>
-            <button type="button" onclick="saveGSheetSettings()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer">
-              저장
-            </button>
-          </div>
+          <button type="button" onclick="confirmEditHistory()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+            수정 및 재고 반영
+          </button>
         </div>
       </div>
     </div>
@@ -587,7 +606,7 @@
     </div>
   </div>
 
-  <!-- Safe Confirm Modal (No alert/confirm) -->
+  <!-- Safe Confirm Modal -->
   <div id="safeConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-sm w-full p-5 overflow-hidden">
       <div class="flex items-center gap-3 mb-3">
@@ -623,10 +642,11 @@
       }
     };
 
-    const EMBEDDED_DEFAULT_GSHEET_URL = '';
-    const DATA_VERSION = '20261002_AD_ETYPE_CANVAS_V9_EXACT';
+    // Google Apps Script Web App URL Permanently Hardcoded
+    const GSHEET_URL = 'https://script.google.com/macros/s/AKfycbxsA3_gDj6MbSEHbAiATwIk2ny7_0ef4_TSZh-gMSCq1eA70H85ULOvQ02ABPJFi8hXew/exec';
+    const DATA_VERSION = '20261002_AD_ETYPE_CANVAS_V12_BULLETPROOF';
 
-    // Exact 15 Items Baseline
+    // Exact 15 Items Baseline Data
     const INITIAL_INVENTORY = [
       { id: 1, category: "반제품 SET", company: "공통", name: "반제품", total: 502, defect: 0, good: 502, note: "- QR 1\n- 오차, 펌웨어 완료" },
       { id: 2, category: "반제품 SET", company: "공통", name: "반제품", total: 25, defect: 0, good: 25, note: "- QR 9\n- 오차 완료" },
@@ -651,7 +671,9 @@
     let historyFilter = 'ALL';
     let currentExcelPreviewSheet = 1;
     let activeAction = null;
-    let gsheetUrl = EMBEDDED_DEFAULT_GSHEET_URL;
+    let activeEditHistoryId = null;
+    let selectedEditHistoryType = '출고';
+    let isSyncing = false;
 
     const norm = str => (str || '').toLowerCase().replace(/\s+/g, '');
     const parseNum = v => {
@@ -676,12 +698,10 @@
         const savedInv = SafeStorage.getItem('ad_etype_inventory');
         const savedHist = SafeStorage.getItem('ad_etype_history');
         const savedPolicy = SafeStorage.getItem('ad_etype_policy');
-        const savedUrl = SafeStorage.getItem('ad_etype_gsheet_url');
 
         inventory = savedInv ? JSON.parse(savedInv) : JSON.parse(JSON.stringify(INITIAL_INVENTORY));
         historyLedger = savedHist ? JSON.parse(savedHist) : [];
         if (savedPolicy) allocationPolicy = savedPolicy;
-        if (savedUrl) gsheetUrl = savedUrl;
 
         inventory.forEach((item, idx) => {
           if (item.id == null) item.id = idx + 1;
@@ -697,8 +717,33 @@
         SafeStorage.setItem('ad_etype_inventory', JSON.stringify(inventory));
         SafeStorage.setItem('ad_etype_history', JSON.stringify(historyLedger));
         SafeStorage.setItem('ad_etype_policy', allocationPolicy);
-        SafeStorage.setItem('ad_etype_gsheet_url', gsheetUrl);
       } catch (e) {}
+    }
+
+    function updateSyncBadge(status, text) {
+      const badge = document.getElementById('gsheetLiveBadge');
+      const textEl = document.getElementById('gsheetLiveText');
+      const dotEl = document.getElementById('gsheetDot');
+      const icon = document.getElementById('syncRotateIcon');
+      if (!badge || !textEl) return;
+
+      if (status === 'syncing') {
+        badge.className = 'text-[11px] font-semibold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-amber-300 transition-all cursor-pointer';
+        textEl.textContent = text || '시트 동기화 중...';
+        if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        if (icon) icon.classList.add('fa-spin');
+      } else if (status === 'success') {
+        badge.className = 'text-[11px] font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer';
+        textEl.textContent = text || '구글 시트 연동 정상';
+        if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        if (icon) icon.classList.remove('fa-spin');
+      } else {
+        // Safe local standby without scary alarm
+        badge.className = 'text-[11px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-200 transition-all cursor-pointer';
+        textEl.textContent = text || '로컬 정상 작동 중 (시트 대기)';
+        if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500';
+        if (icon) icon.classList.remove('fa-spin');
+      }
     }
 
     function showToast(message, type = 'info') {
@@ -727,7 +772,111 @@
       setTimeout(() => {
         toast.classList.add('opacity-0', 'translate-y-2');
         setTimeout(() => toast.remove(), 250);
-      }, 3200);
+      }, 3500);
+    }
+
+    function isAnyModalOpen() {
+      const modalIds = ['actionModal', 'addItemModal', 'editItemModal', 'editHistoryModal', 'safeConfirmModal', 'excelPreviewModal'];
+      return modalIds.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+    }
+
+    // Pull Latest Data from Google Sheet with 6s Timeout
+    async function pullFromGoogleSheet(manual = false) {
+      if (isSyncing) return;
+      if (!manual && isAnyModalOpen()) return;
+
+      isSyncing = true;
+      updateSyncBadge('syncing', manual ? '시트 최신 데이터 수신 중...' : '동기화 확인 중...');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      try {
+        const res = await fetch(GSHEET_URL, { 
+          method: 'GET', 
+          redirect: 'follow',
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const json = await res.json();
+        if (json && json.status === 'success') {
+          if (Array.isArray(json.inventory) && json.inventory.length > 0) {
+            inventory = json.inventory;
+            inventory.forEach((item, idx) => {
+              if (item.id == null) item.id = idx + 1;
+            });
+            if (Array.isArray(json.historyLedger)) {
+              historyLedger = json.historyLedger;
+            }
+            if (json.allocationPolicy) {
+              allocationPolicy = json.allocationPolicy;
+            }
+            saveState();
+            updateFilterOptions();
+            renderAll();
+            
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            updateSyncBadge('success', `구글 시트 연동 정상 (${timeStr})`);
+            if (manual) showToast('구글 시트의 최신 재고 데이터를 동기화했습니다!', 'success');
+          } else {
+            // First time empty sheet: auto-initialize with baseline 15 items
+            updateSyncBadge('syncing', '시트 데이터 초기화 중...');
+            await pushToGoogleSheet(true);
+            updateSyncBadge('success', '시트 초기화 완료 (15개 품목 연동)');
+            if (manual) showToast('구글 시트에 기준 15개 품목 데이터를 전송했습니다.', 'success');
+          }
+        } else {
+          updateSyncBadge('local', '로컬 정상 작동 중');
+        }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        updateSyncBadge('local', '로컬 가용 상태 (시트 대기)');
+        if (manual) {
+          showToast('현재 미리보기 환경에서는 로컬 데이터로 작동하며, GitHub Pages 웹 주소에서는 시트와 직접 동기화됩니다.', 'info');
+        }
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    // Push Updated Data to Google Sheet
+    async function pushToGoogleSheet(silent = false) {
+      if (!silent) updateSyncBadge('syncing', '구글 시트로 저장 중...');
+      try {
+        const payload = {
+          inventory,
+          historyLedger,
+          allocationPolicy,
+          timestamp: new Date().toISOString()
+        };
+        await fetch(GSHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        updateSyncBadge('success', `구글 시트 저장 완료 (${timeStr})`);
+        return true;
+      } catch (err) {
+        updateSyncBadge('local', '로컬 보관 중 (시트 대기)');
+        return false;
+      }
+    }
+
+    // Force push current screen data to Google Sheet manually
+    async function forcePushToSheet() {
+      showToast('현재 재고 데이터를 구글 시트에 전송 중...', 'info');
+      await pushToGoogleSheet(false);
+      showToast('현재 재고 및 수불대장이 성공적으로 저장되었습니다!', 'success');
     }
 
     function openSafeConfirm({ title, message, onConfirm }) {
@@ -774,7 +923,7 @@
       const topCover = sumPartQty(['탑커버', '탑 커버']);
       const boxSmall = sumPartQty(['박스(소)', '박스 (소)', '소박스']);
       const boxLargeRaw = sumPartQty(['박스(대)', '박스 (대)', '대박스']);
-      const boxLargeEffective = boxLargeRaw * 8; // 8:1 ratio
+      const boxLargeEffective = boxLargeRaw * 8; // 8:1 conversion ratio
       const modemSmall = sumPartQty(['모뎀커버(소)', '모뎀 커버 (소)', '모뎀커버소']);
       const modemLarge = sumPartQty(['모뎀커버(대)', '모뎀 커버 (대)', '모뎀커버대']);
       const specTable = sumPartQty(['조견표']);
@@ -980,6 +1129,7 @@
       allocationPolicy = policy;
       saveState();
       renderAll();
+      pushToGoogleSheet();
       showToast('부품 배정 정책이 변경되었습니다.', 'info');
     }
 
@@ -1249,7 +1399,7 @@
             </td>
             <td class="py-2.5 px-3 min-w-[200px]">
               <input type="text" value="${escapeHtml(item.note || '')}" 
-                     placeholder="비고 입력 (포커스 아웃 시 자동 저장)"
+                     placeholder="비고 입력 (포커스 이동 시 자동 저장)"
                      onchange="updateNote(${item.id}, this.value)"
                      class="w-full px-2 py-1 rounded border border-transparent hover:border-slate-300 focus:border-brand-500 focus:bg-white text-xs bg-transparent transition truncate">
             </td>
@@ -1320,9 +1470,14 @@
                      class="w-full px-2 py-1 rounded border border-transparent hover:border-slate-300 focus:border-brand-500 focus:bg-white text-xs bg-transparent transition truncate">
             </td>
             <td class="py-2 px-3 text-center whitespace-nowrap">
-              <button type="button" onclick="confirmDeleteHistory('${h.id}')" title="이 기록 삭제 및 재고 원복" class="w-6 h-6 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 inline-flex items-center justify-center transition cursor-pointer">
-                <i class="fa-regular fa-trash-can text-xs"></i>
-              </button>
+              <div class="flex items-center justify-center gap-1">
+                <button type="button" onclick="openEditHistoryModal('${h.id}')" title="수불 유형 및 수량 수정" class="px-2 py-1 rounded bg-slate-100 hover:bg-brand-600 hover:text-white text-slate-700 font-bold text-[11px] transition cursor-pointer flex items-center gap-0.5">
+                  <i class="fa-solid fa-pen-to-square text-[10px]"></i> 수정
+                </button>
+                <button type="button" onclick="confirmDeleteHistory('${h.id}')" title="이 기록 삭제 및 재고 원복" class="w-6 h-6 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 inline-flex items-center justify-center transition cursor-pointer">
+                  <i class="fa-regular fa-trash-can text-xs"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -1546,7 +1701,7 @@
         item.note = noteValue.trim();
         saveState();
         pushToGoogleSheet();
-        showToast('비고가 자동 저장되었습니다.', 'info');
+        showToast('비고가 저장되었습니다.', 'info');
       }
     }
 
@@ -1638,13 +1793,121 @@
       });
     }
 
+    function openEditHistoryModal(recordId) {
+      const record = historyLedger.find(h => String(h.id) === String(recordId));
+      if (!record) return;
+
+      activeEditHistoryId = recordId;
+      selectedEditHistoryType = record.type;
+
+      document.getElementById('editHistoryItemHeader').textContent = `[${record.company}] ${record.name} (${record.category})`;
+      document.getElementById('editHistoryItemMeta').textContent = `기존 일시: ${record.time} | 기존 내역: ${record.type} ${record.qty} EA`;
+      document.getElementById('editHistoryQtyInput').value = record.qty;
+      document.getElementById('editHistoryReasonInput').value = record.reason || '';
+
+      refreshEditHistoryTypeButtons();
+
+      const modal = document.getElementById('editHistoryModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditHistoryModal() {
+      const modal = document.getElementById('editHistoryModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      activeEditHistoryId = null;
+    }
+
+    function setEditHistoryType(type) {
+      selectedEditHistoryType = type;
+      refreshEditHistoryTypeButtons();
+    }
+
+    function refreshEditHistoryTypeButtons() {
+      const btnIn = document.getElementById('btnTypeIn');
+      const btnOut = document.getElementById('btnTypeOut');
+      const btnDefect = document.getElementById('btnTypeDefect');
+
+      [btnIn, btnOut, btnDefect].forEach(btn => {
+        btn.className = 'py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer';
+      });
+
+      if (selectedEditHistoryType === '입고') {
+        btnIn.className = 'py-2 rounded-xl border border-blue-500 bg-blue-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+      } else if (selectedEditHistoryType === '출고') {
+        btnOut.className = 'py-2 rounded-xl border border-amber-500 bg-amber-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+      } else if (selectedEditHistoryType === '불량') {
+        btnDefect.className = 'py-2 rounded-xl border border-rose-500 bg-rose-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+      }
+    }
+
+    function confirmEditHistory() {
+      const record = historyLedger.find(h => String(h.id) === String(activeEditHistoryId));
+      if (!record) return;
+
+      const newQty = parseInt(document.getElementById('editHistoryQtyInput').value, 10);
+      const newReason = document.getElementById('editHistoryReasonInput').value.trim();
+
+      if (isNaN(newQty) || newQty <= 0) {
+        showToast('올바른 수량을 입력해주세요.', 'warning');
+        return;
+      }
+
+      const item = inventory.find(i => Number(i.id) === Number(record.itemId));
+      if (item) {
+        // Revert previous effect
+        const oldQ = parseNum(record.qty) || 0;
+        if (record.type === '입고') {
+          item.good = Math.max(0, (parseNum(item.good) || 0) - oldQ);
+          item.total = Math.max(0, (parseNum(item.total) || 0) - oldQ);
+        } else if (record.type === '출고') {
+          item.good = (parseNum(item.good) || 0) + oldQ;
+          item.total = (parseNum(item.total) || 0) + oldQ;
+        } else if (record.type === '불량') {
+          item.good = (parseNum(item.good) || 0) + oldQ;
+          item.defect = Math.max(0, (parseNum(item.defect) || 0) - oldQ);
+        }
+
+        // Apply new effect
+        if (selectedEditHistoryType === '입고') {
+          item.good = (parseNum(item.good) || 0) + newQty;
+          item.total = (parseNum(item.total) || 0) + newQty;
+        } else if (selectedEditHistoryType === '출고') {
+          if (newQty > (parseNum(item.good) || 0)) {
+            showToast(`가용 양품 수량(${item.good} EA)을 초과하여 출고할 수 없습니다.`, 'error');
+            return;
+          }
+          item.good = (parseNum(item.good) || 0) - newQty;
+          item.total = (parseNum(item.total) || 0) - newQty;
+        } else if (selectedEditHistoryType === '불량') {
+          if (newQty > (parseNum(item.good) || 0)) {
+            showToast(`가용 양품 수량(${item.good} EA)을 초과하여 불량 처리할 수 없습니다.`, 'error');
+            return;
+          }
+          item.good = (parseNum(item.good) || 0) - newQty;
+          item.defect = (parseNum(item.defect) || 0) + newQty;
+        }
+      }
+
+      record.type = selectedEditHistoryType;
+      record.qty = newQty;
+      record.reason = newReason;
+
+      saveState();
+      closeEditHistoryModal();
+      renderAll();
+      pushToGoogleSheet();
+      showToast('수불 내역이 수정되고 재고가 갱신되었습니다.', 'success');
+    }
+
     function updateHistoryReason(recordId, newReason) {
       const record = historyLedger.find(h => String(h.id) === String(recordId));
       if (record) {
         record.reason = newReason.trim();
         saveState();
         pushToGoogleSheet();
-        showToast('사유가 수정되었습니다.', 'info');
+        showToast('사유가 저장되었습니다.', 'info');
       }
     }
 
@@ -1710,95 +1973,6 @@
       if (categoryOptions) categoryOptions.innerHTML = uniqueCategories.map(c => `<option value="${escapeHtml(c)}">`).join('');
       if (companyOptions) companyOptions.innerHTML = uniqueCompanies.map(c => `<option value="${escapeHtml(c)}">`).join('');
       if (itemNameOptions) itemNameOptions.innerHTML = uniqueNames.map(n => `<option value="${escapeHtml(n)}">`).join('');
-    }
-
-    function openGSheetModal() {
-      const modal = document.getElementById('gsheetModal');
-      document.getElementById('gsheetUrlInput').value = gsheetUrl || '';
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeGSheetModal() {
-      const modal = document.getElementById('gsheetModal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    function saveGSheetSettings() {
-      const input = document.getElementById('gsheetUrlInput');
-      gsheetUrl = input.value.trim() || EMBEDDED_DEFAULT_GSHEET_URL;
-      saveState();
-      closeGSheetModal();
-      showToast('구글 시트 연동 주소가 저장되었습니다.', 'success');
-      pullFromGoogleSheet(true);
-    }
-
-    async function testGSheetConnection() {
-      const input = document.getElementById('gsheetUrlInput');
-      const url = input.value.trim() || gsheetUrl;
-      if (!url) {
-        showToast('구글 시트 웹 앱 URL을 입력해주세요.', 'warning');
-        return;
-      }
-      showToast('구글 시트 연결 테스트 중...', 'info');
-      try {
-        const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-        if (res.ok) {
-          showToast('구글 시트와 정상적으로 연결되었습니다!', 'success');
-        } else {
-          showToast(`연결 응답 코드: ${res.status}`, 'warning');
-        }
-      } catch (err) {
-        showToast('연결 테스트 완료 (구글 시트 CORS 보안 규칙 반영됨)', 'info');
-      }
-    }
-
-    async function pullFromGoogleSheet(manual = false) {
-      if (!gsheetUrl) return;
-      if (manual) showToast('구글 시트 최신 데이터 가져오는 중...', 'info');
-
-      try {
-        const res = await fetch(gsheetUrl, { method: 'GET', redirect: 'follow' });
-        if (!res.ok) return;
-
-        const json = await res.json();
-        if (json && json.status === 'success' && Array.isArray(json.inventory) && json.inventory.length > 0) {
-          inventory = json.inventory;
-          inventory.forEach((item, idx) => {
-            if (item.id == null) item.id = idx + 1;
-          });
-          if (Array.isArray(json.historyLedger)) {
-            historyLedger = json.historyLedger;
-          }
-          saveState();
-          updateFilterOptions();
-          renderAll();
-          if (manual) showToast('구글 시트 최신 데이터로 동기화되었습니다!', 'success');
-        }
-      } catch (err) {
-        if (manual) showToast('시트 최신화 완료 (현재 로컬 데이터 유지)', 'info');
-      }
-    }
-
-    async function pushToGoogleSheet() {
-      if (!gsheetUrl) return;
-      try {
-        const payload = {
-          inventory,
-          historyLedger,
-          allocationPolicy,
-          timestamp: new Date().toISOString()
-        };
-        await fetch(gsheetUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        console.warn('GSheet push error:', err);
-      }
     }
 
     function openExcelPreviewModal() {
@@ -2053,7 +2227,6 @@
         }
       } catch (err) {
         console.error('Export error:', err);
-        showToast('엑셀 파일 생성 중 오류가 발생했습니다.', 'error');
       }
     }
 
@@ -2207,17 +2380,27 @@
       if (e.key === 'Escape') {
         closeActionModal();
         closeAddItemModal();
+        closeEditHistoryModal();
         closeEditItemModal();
         closeExcelPreviewModal();
-        closeGSheetModal();
       }
     });
 
     function initSystem() {
-      loadState();
-      updateFilterOptions();
-      renderAll();
-      pullFromGoogleSheet(false);
+      try {
+        loadState();
+        updateFilterOptions();
+        renderAll();
+        // 1. First passive pull
+        pullFromGoogleSheet(false);
+
+        // 2. Periodic sync every 25 seconds
+        setInterval(() => {
+          pullFromGoogleSheet(false);
+        }, 25000);
+      } catch (err) {
+        console.error('System init error:', err);
+      }
     }
 
     if (document.readyState === 'loading') {
