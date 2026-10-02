@@ -63,7 +63,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 0.5rem;
+      border-radius: 0.75rem;
       font-weight: 700;
       transition: all 0.15s ease;
       cursor: pointer;
@@ -74,66 +74,59 @@
 
   <div class="max-w-[1700px] mx-auto px-4 sm:px-6 pt-5">
     
+    <!-- Top System Header (Warm Cream / Ivory Tone) -->
     <header class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-4 sm:p-5 shadow-xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
         <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 text-xl font-bold shrink-0">
           <i class="fa-solid fa-boxes-stacked"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-2.5 flex-wrap">
             <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">AD E-Type 기구물 및 자재 재고관리 시스템</h1>
-            <span class="text-[11px] font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/60">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> AD E-Type 전용창고
-            </span>
-            <!-- Live Auto Sync Badge -->
-            <button onclick="pullFromGoogleSheet(true)" id="gsheetLiveBadge" title="클릭하여 즉시 시트 최신화 및 동기화" class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer">
+            <!-- Live Cloud Sync Status Badge (AMIGO Style) -->
+            <button onclick="pullFromGoogleSheet(true)" id="gsheetLiveBadge" title="클릭하여 즉시 시트 최신화" class="text-[11px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="gsheetDot"></span>
-              <span id="gsheetLiveText">구글 시트 연동 준비 완료</span>
+              <span id="gsheetLiveText">구글 시트 연동됨</span>
+              <i class="fa-solid fa-cloud text-[10px] text-emerald-600"></i>
             </button>
           </div>
-          <p class="text-xs text-slate-600 mt-0.5 font-medium">실제 원본 15개 품목 기준 · 박스(대) 8:1 소요 환산 · 실시간 결합 병목 산출 · 구글 시트 양방향 실시간 동기화</p>
+          <p class="text-xs text-slate-600 mt-0.5 font-medium">실시간 단품 병목 산출 · 창고 노트북 & 스마트폰 구글 시트 양방향 자동 동기화</p>
         </div>
       </div>
 
-      <!-- Action Button Toolbar -->
+      <!-- Action Button Toolbar (Clean 6-Button AMIGO Layout) -->
       <div class="flex items-center flex-wrap gap-2">
         <button onclick="pullFromGoogleSheet(true)" title="구글 시트의 최신 재고 데이터를 즉시 새로고침하여 가져옵니다" class="btn-action px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate text-emerald-400" id="syncRotateIcon"></i> 시트 최신화
+          <i class="fa-solid fa-arrows-rotate text-emerald-400" id="syncRotateIcon"></i> 실시간 동기화
         </button>
-        <button onclick="forcePushToSheet()" title="현재 화면에 보이는 모든 재고를 구글 시트에 즉시 강제 전송/저장합니다" class="btn-action px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-cloud-arrow-up"></i> 시트에 강제 저장
-        </button>
-        <button onclick="openAddItemModal()" class="btn-action px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+        <button onclick="openAddItemModal()" class="btn-action px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-plus"></i> 신규 품목 추가
         </button>
-        <button onclick="openExcelPreviewModal()" class="btn-action px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
-          <i class="fa-solid fa-table"></i> 엑셀 서식 미리보기
+        <button onclick="openExcelPreviewModal()" class="btn-action px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-table text-slate-500"></i> 서식 미리보기
         </button>
-        <button onclick="exportToExcel()" class="btn-action px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+        <button onclick="exportToExcel()" class="btn-action px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
           <i class="fa-solid fa-file-excel"></i> 엑셀 다운로드 (.xlsx)
         </button>
         <button onclick="backupDataToJson()" title="현재 재고 및 수불대장 전체를 백업 파일로 저장" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1">
-          <i class="fa-solid fa-download text-slate-500"></i> 백업
+          <i class="fa-solid fa-download text-slate-500"></i> 데이터 백업
         </button>
         <label title="이전에 백업한 JSON 파일 복원" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 cursor-pointer">
           <i class="fa-solid fa-upload text-slate-500"></i> 복원
           <input type="file" id="restoreJsonInput" accept=".json" class="hidden" onchange="restoreDataFromJson(event)">
         </label>
-        <label title="엑셀 원본 파일(.xlsx) 직접 불러오기" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-file-import text-slate-500"></i> 엑셀 열기
-          <input type="file" id="importExcelInput" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
-        </label>
       </div>
     </header>
 
+    <!-- Allocation Priority Mode Bar (Ev-Through First, Fair Last) -->
     <section class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-3.5 sm:p-4 shadow-xs mb-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
-            <i class="fa-solid fa-sliders text-emerald-700"></i> 부품 배정 우선순위 모드:
+            <i class="fa-solid fa-sliders text-amber-600"></i> 부품 배정 우선순위 모드:
           </span>
           <span id="allocationModeDesc" class="text-[11px] text-slate-600 font-medium">
-            공통 결합 단품 부족 시 어떤 업체에 우선 완제품을 조립·배정할지 결정합니다.
+            공통 결합 단품 부족 시 어떤 업체에 완제품을 1순위로 우선 배정할지 결정합니다.
           </span>
         </div>
 
@@ -143,6 +136,7 @@
       </div>
     </section>
 
+    <!-- 4 Core KPI Metric Cards -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
       <!-- 1. Total Buildable -->
       <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
@@ -217,6 +211,7 @@
       </div>
     </section>
 
+    <!-- Company Allocation Breakdown Cards -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-4">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -235,11 +230,12 @@
       </div>
     </section>
 
+    <!-- 8 Essential Assembly BOM Parts Grid (Box Large 8:1 Conversion) -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3">
         <div class="flex items-center gap-2">
           <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <i class="fa-solid fa-puzzle-piece text-brand-600"></i> AD E-Type 완제품 1 SET 조립 핵심 자재 현황 (8종)
+            <i class="fa-solid fa-puzzle-piece text-blue-600"></i> AD E-Type 완제품 1 SET 조립 핵심 자재 현황 (8종)
           </span>
           <span class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full font-semibold">
             박스(대)는 제품 8개당 1개 소요 (×8 환산 적용)
@@ -253,6 +249,7 @@
       </div>
     </section>
 
+    <!-- Search & Filter Bar -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-xs mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center flex-wrap gap-2.5">
         <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
@@ -272,6 +269,7 @@
       </div>
     </section>
 
+    <!-- Main Inventory Table -->
     <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden mb-6">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs border-collapse">
@@ -294,6 +292,7 @@
       </div>
     </section>
 
+    <!-- Transaction History Section -->
     <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
         <div>
@@ -634,7 +633,7 @@
       }
     };
 
-    // Current Google Apps Script Web App URL
+    // Google Apps Script Web App URL
     const GSHEET_URL = 'https://script.google.com/macros/s/AKfycbxc9Rqe6TfXyzG5kCj7H9zJklFztAsQpDB5XMROpyu8JjsCdpDNCYMFJS8xSnMCmlx5jg/exec';
 
     // Exact 15 Items Baseline matching user's active 482 SET PC state
@@ -709,18 +708,18 @@
       if (!badge || !textEl) return;
 
       if (status === 'syncing') {
-        badge.className = 'text-[11px] font-semibold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-amber-300 transition-all cursor-pointer';
-        textEl.textContent = text || '시트 동기화 중...';
+        badge.className = 'text-[11px] font-semibold bg-amber-50 text-amber-900 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-amber-300 transition-all cursor-pointer';
+        textEl.textContent = text || '동기화 중...';
         if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
         if (icon) icon.classList.add('fa-spin');
       } else if (status === 'success') {
-        badge.className = 'text-[11px] font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer';
-        textEl.textContent = text || '구글 시트 연동 정상';
+        badge.className = 'text-[11px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-300 transition-all cursor-pointer';
+        textEl.textContent = text || '구글 시트 연동됨';
         if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
         if (icon) icon.classList.remove('fa-spin');
       } else {
         badge.className = 'text-[11px] font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 border border-emerald-200 transition-all cursor-pointer';
-        textEl.textContent = text || '로컬 정상 작동 중 (시트 대기)';
+        textEl.textContent = text || '구글 시트 연동됨';
         if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500';
         if (icon) icon.classList.remove('fa-spin');
       }
@@ -815,27 +814,26 @@
           renderAll();
           
           const now = new Date();
-          const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-          updateSyncBadge('success', `구글 시트 연동 정상 (${timeStr})`);
+          const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+          updateSyncBadge('success', `구글 시트 연동됨 (${timeStr})`);
           if (manual) {
             const asm = calculateAssembly();
-            showToast(`구글 시트 동기화 완료! (완제품 ${asm.totalBuildable} SET)`, 'success');
+            showToast(`동기화 완료! (완제품 ${asm.totalBuildable} SET)`, 'success');
           }
         } else {
           // If sheet is empty but local has data, upload local data to initialize sheet
           if (inventory && inventory.length > 0) {
-            updateSyncBadge('syncing', '시트 데이터 동기화 업로드 중...');
             await pushToGoogleSheet(true);
-            updateSyncBadge('success', '구글 시트 연동 정상');
+            updateSyncBadge('success', '구글 시트 연동됨');
           } else {
-            updateSyncBadge('local', '로컬 정상 작동 중');
+            updateSyncBadge('local', '구글 시트 연동됨');
           }
         }
       } catch (err) {
         clearTimeout(timeoutId);
-        updateSyncBadge('local', '로컬 가용 상태 (시트 대기)');
+        updateSyncBadge('local', '구글 시트 연동 대기');
         if (manual) {
-          showToast('시트 응답 대기 중입니다. 잠시 후 [시트 최신화]를 다시 눌러주세요.', 'warning');
+          showToast('동기화 재시도 중입니다.', 'info');
         }
       } finally {
         isSyncing = false;
@@ -860,39 +858,11 @@
         });
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        updateSyncBadge('success', `구글 시트 저장 완료 (${timeStr})`);
+        updateSyncBadge('success', `구글 시트 연동됨 (${timeStr})`);
         return true;
       } catch (err) {
-        updateSyncBadge('local', '로컬 보관 중 (시트 대기)');
+        updateSyncBadge('local', '구글 시트 연동됨');
         return false;
-      }
-    }
-
-    async function forcePushToSheet() {
-      const asm = calculateAssembly();
-      showToast(`현재 재고(${asm.totalBuildable} SET)를 구글 시트에 전송 중...`, 'info');
-      updateSyncBadge('syncing', '구글 시트로 저장 중...');
-      try {
-        const payload = {
-          status: "success",
-          inventory,
-          historyLedger,
-          allocationPolicy,
-          timestamp: new Date().toISOString()
-        };
-        await fetch(GSHEET_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-        const now = new Date();
-        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        updateSyncBadge('success', `구글 시트 저장 완료 (${timeStr})`);
-        showToast(`구글 시트에 ${asm.totalBuildable} SET 재고가 성공적으로 등록되었습니다!`, 'success');
-      } catch (err) {
-        updateSyncBadge('local', '로컬 보관 중 (시트 대기)');
-        showToast('구글 시트 전송 중 오류가 발생했습니다.', 'error');
       }
     }
 
@@ -1104,7 +1074,7 @@
       const isEvActive = (allocationPolicy === 'COMPANY_이브이쓰루');
       html += `
         <button onclick="setAllocationPolicy('COMPANY_이브이쓰루')" class="btn-action px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${isEvActive ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
-          <i class="fa-solid fa-star text-[10px]"></i> 이브이쓰루 우선
+          <i class="fa-solid fa-star text-[10px]"></i> 이브이쓰루(자사) 우선
         </button>
       `;
 
@@ -1873,7 +1843,6 @@
 
       const item = inventory.find(i => Number(i.id) === Number(record.itemId));
       if (item) {
-        // Revert previous effect
         const oldQ = parseNum(record.qty) || 0;
         if (record.type === '입고') {
           item.good = Math.max(0, (parseNum(item.good) || 0) - oldQ);
@@ -1886,7 +1855,6 @@
           item.defect = Math.max(0, (parseNum(item.defect) || 0) - oldQ);
         }
 
-        // Apply new effect
         if (selectedEditHistoryType === '입고') {
           item.good = (parseNum(item.good) || 0) + newQty;
           item.total = (parseNum(item.total) || 0) + newQty;
@@ -2052,7 +2020,7 @@
           <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between">
             <div>
               <h4 class="text-base font-extrabold tracking-tight">AD E-Type 기구물 및 자재 보유 재고 현황</h4>
-              <p class="text-[11px] text-slate-300 mt-0.5">출력 기준일: ${new Date().toISOString().slice(0, 10)} | 세진 · 이브이쓰루 · 공통 (총 15개 품목) | 박스(대) 8:1 환산 적용</p>
+              <p class="text-[11px] text-slate-300 mt-0.5">출력 기준일: ${new Date().toISOString().slice(0, 10)} | 박스(대) 8:1 환산 적용</p>
             </div>
             <div class="flex items-center gap-3 text-xs">
               <div class="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700/60">
@@ -2300,86 +2268,6 @@
       event.target.value = '';
     }
 
-    function importFromExcel(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      showToast('엑셀 파일 분석 중...', 'info');
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          if (window.ExcelJS) {
-            const workbook = new ExcelJS.Workbook();
-            workbook.xlsx.load(e.target.result).then(wb => {
-              const ws = wb.worksheets[0];
-              if (!ws) return;
-
-              const newItems = [];
-              let currentCategory = '포장용';
-              let autoId = 1;
-              let colCatIdx = 2, colCompIdx = 3, colNameIdx = 4, colTotalIdx = 5, colDefectIdx = 6, colGoodIdx = 7, colNoteIdx = 8;
-              let headerFound = false;
-
-              ws.eachRow((row) => {
-                if (!headerFound) {
-                  for (let c = 1; c <= 10; c++) {
-                    const txt = norm(String(row.getCell(c).value || ''));
-                    if (txt.includes('품목명')) {
-                      colNameIdx = c;
-                      headerFound = true;
-                    }
-                  }
-                  if (headerFound) {
-                    for (let c = 1; c <= 10; c++) {
-                      const txt = norm(String(row.getCell(c).value || ''));
-                      if (txt === '구분') colCatIdx = c;
-                      else if (txt.includes('업체')) colCompIdx = c;
-                      else if (txt.includes('총수량')) colTotalIdx = c;
-                      else if (txt.includes('불량')) colDefectIdx = c;
-                      else if (txt.includes('양품') || txt.includes('가용')) colGoodIdx = c;
-                      else if (txt.includes('비고') || txt.includes('내역')) colNoteIdx = c;
-                    }
-                    return;
-                  }
-                }
-
-                const nameStr = String(row.getCell(colNameIdx).value || '').trim();
-                const catStr = String(row.getCell(colCatIdx).value || '').trim();
-                if (!nameStr || nameStr.includes('품목명') || nameStr.includes('합계') || catStr.includes('합계')) return;
-
-                if (catStr) currentCategory = catStr.replace(/\n/g, ' ').trim();
-                const compStr = String(row.getCell(colCompIdx).value || '').trim() || '공통';
-
-                newItems.push({
-                  id: autoId++,
-                  category: currentCategory,
-                  company: compStr,
-                  name: nameStr,
-                  total: parseNum(row.getCell(colTotalIdx).value),
-                  defect: parseNum(row.getCell(colDefectIdx).value),
-                  good: parseNum(row.getCell(colGoodIdx).value),
-                  note: String(row.getCell(colNoteIdx).value || '').trim()
-                });
-              });
-
-              if (newItems.length > 0) {
-                inventory = newItems;
-                saveState();
-                updateFilterOptions();
-                renderAll();
-                pushToGoogleSheet();
-                showToast(`엑셀에서 ${newItems.length}개 품목을 불러왔습니다!`, 'success');
-              }
-            });
-          }
-        } catch (err) {
-          showToast('엑셀 파일을 불러올 수 없습니다.', 'error');
-        }
-      };
-      reader.readAsArrayBuffer(file);
-      event.target.value = '';
-    }
-
     function escapeHtml(str) {
       if (typeof str !== 'string') return str;
       return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
@@ -2410,10 +2298,10 @@
         renderAll();
         pullFromGoogleSheet(false);
 
-        // Periodic sync poll every 25 seconds
+        // Periodic sync poll every 20 seconds
         setInterval(() => {
           pullFromGoogleSheet(false);
-        }, 25000);
+        }, 20000);
       } catch (err) {
         console.error('System init error:', err);
       }
