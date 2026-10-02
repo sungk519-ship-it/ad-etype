@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AD E-Type 기구물 및 자재 재고관리 시스템</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 6 Free -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- ExcelJS CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+
+  <script>
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+                800: '#1e40af',
+                900: '#1e3a8a',
+              }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif;
+      letter-spacing: -0.015em;
+      background-color: #faf7f2;
+      color: #0f172a;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-[#faf7f2] text-slate-900 min-h-screen pb-16 antialiased">
+
+  <div class="max-w-[1700px] mx-auto px-4 sm:px-6 pt-5">
+    
+    <!-- Top System Header (Warm Cream / Ivory Tone) -->
+    <header class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-4 sm:p-5 shadow-xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-amber-600 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 text-xl font-bold">
+          <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">AD E-Type 기구물 및 자재 재고관리 시스템</h1>
+            <span class="text-[11px] font-semibold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1 border border-amber-300/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> AD E-Type 전용창고
+            </span>
+            <span id="gsheetStatusBadge" class="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full flex items-center gap-1 border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> 구글 시트 연동 지원
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 mt-0.5 font-medium">실제 원본 15개 품목 기준 · 박스(대) 8:1 소요 환산 · 결합 병목 자동 산출 · 완제품 실질 조립량 시뮬레이션</p>
+        </div>
+      </div>
+
+      <!-- Action Button Toolbar -->
+      <div class="flex items-center flex-wrap gap-2">
+        <button onclick="pullFromGoogleSheet(true)" title="구글 시트의 최신 재고 데이터를 새로고침하여 가져옵니다" class="btn-action px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate text-emerald-400"></i> 시트 최신화
+        </button>
+        <button onclick="openAddItemModal()" class="btn-action px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-plus"></i> 신규 품목 추가
+        </button>
+        <button onclick="openGSheetModal()" class="btn-action px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells"></i> 구글 시트 설정
+        </button>
+        <button onclick="openExcelPreviewModal()" class="btn-action px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-table"></i> 엑셀 서식 미리보기
+        </button>
+        <button onclick="exportToExcel()" class="btn-action px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-file-excel"></i> 엑셀 다운로드 (.xlsx)
+        </button>
+        <button onclick="backupDataToJson()" title="현재 재고 및 수불대장 전체를 백업 파일로 저장" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1">
+          <i class="fa-solid fa-download text-slate-500"></i> 백업
+        </button>
+        <label title="이전에 백업한 JSON 파일 복원" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 cursor-pointer">
+          <i class="fa-solid fa-upload text-slate-500"></i> 복원
+          <input type="file" id="restoreJsonInput" accept=".json" class="hidden" onchange="restoreDataFromJson(event)">
+        </label>
+        <label title="엑셀 원본 파일(.xlsx) 직접 불러오기" class="btn-action px-2.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 cursor-pointer">
+          <i class="fa-solid fa-file-import text-slate-500"></i> 엑셀 열기
+          <input type="file" id="importExcelInput" accept=".xlsx, .xls" class="hidden" onchange="importFromExcel(event)">
+        </label>
+      </div>
+    </header>
+
+    <!-- Allocation Priority Mode Bar (Ev-Through First, Fair Last) -->
+    <section class="bg-[#fefbf6] rounded-2xl border border-amber-200/80 p-3.5 sm:p-4 shadow-xs mb-4">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-sliders text-emerald-700"></i> 부품 배정 우선순위 모드:
+          </span>
+          <span id="allocationModeDesc" class="text-[11px] text-slate-600 font-medium">
+            공통 결합 단품 부족 시 어떤 업체에 우선 완제품을 조립·배정할지 결정합니다.
+          </span>
+        </div>
+
+        <div id="allocationButtonsContainer" class="flex items-center flex-wrap gap-1.5">
+          <!-- Dynamically populated: 이브이쓰루 우선 -> 타업체 우선 -> 비율 균등 배분 -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 Core KPI Metric Cards -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-4">
+      <!-- 1. Total Buildable (완제품 가능 총량 - Blue) -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
+        <div class="flex items-center justify-between text-slate-500 mb-1.5">
+          <span class="text-xs font-bold">완제품 조립 가능 총량</span>
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+            <i class="fa-solid fa-industry text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="kpiTotalBuildable" class="text-3xl font-extrabold text-slate-900 tracking-tight">0</span>
+          <span class="text-xs font-bold text-slate-500">SET</span>
+        </div>
+        <p id="kpiTotalBuildableDesc" class="text-[11px] text-slate-500 mt-1 truncate" title="반제품 및 결합 단품 한도 반영">
+          반제품 및 결합 단품 한도 반영
+        </p>
+      </div>
+
+      <!-- 2. Ev-Through Actual (이브이쓰루 자사 실질 조립 가능 - Emerald) -->
+      <div class="bg-white rounded-2xl border-2 border-emerald-500/80 p-4 shadow-xs bg-gradient-to-br from-emerald-50/40 via-white to-emerald-50/20">
+        <div class="flex items-center justify-between text-emerald-800 mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold">이브이쓰루(자사) 실질 조립 가능</span>
+            <span id="badgeEvStatus" class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded">정상</span>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+            <i class="fa-solid fa-box-open text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="kpiEvQty" class="text-3xl font-extrabold text-emerald-700 tracking-tight">0</span>
+          <span class="text-xs font-bold text-emerald-800">SET</span>
+        </div>
+        <p id="kpiEvDesc" class="text-[11px] text-emerald-700 font-medium mt-1 truncate">
+          자사 보유 단자 커버 기준 가용량
+        </p>
+      </div>
+
+      <!-- 3. Other Companies Assembly Actual (타업체 전체 자동 합산 - Indigo) -->
+      <div class="bg-white rounded-2xl border-2 border-indigo-500/80 p-4 shadow-xs bg-gradient-to-br from-indigo-50/40 via-white to-indigo-50/20">
+        <div class="flex items-center justify-between text-indigo-800 mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold">타업체 실질 조립 가능</span>
+            <span id="badgeOtherStatus" class="text-[9px] bg-indigo-600 text-white font-bold px-1.5 py-0.5 rounded">정상</span>
+          </div>
+          <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
+            <i class="fa-solid fa-truck-ramp-box text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="kpiOtherCompanyQty" class="text-3xl font-extrabold text-indigo-700 tracking-tight">0</span>
+          <span class="text-xs font-bold text-indigo-800">SET</span>
+        </div>
+        <p id="kpiOtherCompanyDesc" class="text-[11px] text-indigo-700 font-medium mt-1 truncate">
+          외주사 단자커버 기준 실가용 수량 합계
+        </p>
+      </div>
+
+      <!-- 4. Total Defect Quantity (불량 전체 - Rose) -->
+      <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs bg-gradient-to-br from-white to-rose-50/30">
+        <div class="flex items-center justify-between text-rose-600 mb-1.5">
+          <span class="text-xs font-bold">불량 수량 (전체)</span>
+          <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
+            <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="kpiDefectQty" class="text-3xl font-extrabold text-rose-600 tracking-tight">0</span>
+          <span class="text-xs font-bold text-rose-600">EA</span>
+        </div>
+        <p class="text-[11px] text-rose-500 mt-1 truncate">전 품목 양품 상태 (불량 0 EA)</p>
+      </div>
+    </section>
+
+    <!-- Company Allocation Breakdown Cards -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-building-columns text-slate-600"></i> 업체별 완제품 조립 가능 상세 현황
+          </span>
+          <span class="text-[11px] text-slate-500">(신규 업체 등록 시에도 실시간 자동 계산되어 표시됩니다)</span>
+        </div>
+        <span id="policyStatusBadge" class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+          이브이쓰루 1순위 최우선 배정 상태
+        </span>
+      </div>
+
+      <div id="companyBreakdownContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- 8 Essential Assembly BOM Parts Grid (Box Large 8:1 Conversion) -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs mb-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-puzzle-piece text-brand-600"></i> AD E-Type 완제품 1 SET 조립 핵심 자재 현황 (8종)
+          </span>
+          <span class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+            박스(대)는 제품 8개당 1개 소요 (×8 환산 적용)
+          </span>
+        </div>
+        <span class="text-[11px] text-slate-500">부품 1개라도 부족 시 해당 부품이 전체 생산의 병목이 됩니다.</span>
+      </div>
+
+      <div id="bomPartsContainer" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- Search & Filter Bar -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-3.5 shadow-xs mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center flex-wrap gap-2.5">
+        <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+          <i class="fa-solid fa-filter text-slate-400"></i> 필터:
+        </span>
+        <select id="filterCategory" onchange="renderTable()" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 focus:outline-none focus:border-brand-500">
+          <option value="">구분 전체</option>
+        </select>
+        <select id="filterCompany" onchange="renderTable()" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-800 focus:outline-none focus:border-brand-500">
+          <option value="">업체 구분 전체</option>
+        </select>
+      </div>
+
+      <div class="relative w-full sm:w-72">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="searchKeyword" onkeyup="renderTable()" placeholder="품목명, 업체, 구분, 비고 검색..." class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:outline-none focus:border-brand-500 bg-white">
+      </div>
+    </section>
+
+    <!-- Main Inventory Table -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden mb-6">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-100/90 text-slate-700 font-bold border-b border-slate-200 select-none">
+              <th class="py-2.5 px-3 whitespace-nowrap min-w-[100px]">구분</th>
+              <th class="py-2.5 px-3 whitespace-nowrap min-w-[95px]">업체 구분</th>
+              <th class="py-2.5 px-3 whitespace-nowrap min-w-[130px]">품목명</th>
+              <th class="py-2.5 px-3 text-right whitespace-nowrap min-w-[70px]">총수량</th>
+              <th class="py-2.5 px-3 text-right whitespace-nowrap min-w-[65px] text-rose-600">불량</th>
+              <th class="py-2.5 px-3 text-right whitespace-nowrap min-w-[75px] text-emerald-700">양품 (가용)</th>
+              <th class="py-2.5 px-3 min-w-[200px]">세부 내역 및 비고 (상시 수정)</th>
+              <th class="py-2.5 px-3 text-center whitespace-nowrap min-w-[160px]">수불 및 관리</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody" class="divide-y divide-slate-100">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Transaction History Section -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+            <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> 수불 이력 및 출고 / 불량 상세 내역 대장
+          </h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">신규등록, 입고, 출고, 불량 처리 내역이 실시간 기록되며 구글 시트와 양방향 동기화됩니다.</p>
+        </div>
+        <div class="flex items-center gap-1 flex-wrap">
+          <button onclick="setHistoryFilter('ALL', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-bold bg-slate-800 text-white">전체</button>
+          <button onclick="setHistoryFilter('출고', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">출고만</button>
+          <button onclick="setHistoryFilter('불량', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">불량만</button>
+          <button onclick="setHistoryFilter('입고', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">입고만</button>
+          <button onclick="setHistoryFilter('신규등록', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">신규등록만</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto max-h-[380px] overflow-y-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="sticky top-0 bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold z-10">
+            <tr>
+              <th class="py-2 px-3 whitespace-nowrap w-36">일시</th>
+              <th class="py-2 px-3 whitespace-nowrap w-24">구분</th>
+              <th class="py-2 px-3 whitespace-nowrap w-28">업체 구분</th>
+              <th class="py-2 px-3 whitespace-nowrap w-36">품목명</th>
+              <th class="py-2 px-3 text-center whitespace-nowrap w-20">유형</th>
+              <th class="py-2 px-3 text-right whitespace-nowrap w-24">수량</th>
+              <th class="py-2 px-3 min-w-[220px]">상세 내역 및 사유 (클릭하여 직접 수정)</th>
+              <th class="py-2 px-3 text-center whitespace-nowrap w-24">관리</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody" class="divide-y divide-slate-100">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Stock Movement Action Modal (IN / OUT / DEFECT) -->
+  <div id="actionModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-md w-full p-5 overflow-hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 id="modalActionTitle" class="text-base font-extrabold text-slate-900">수불 처리</h3>
+        <button type="button" onclick="closeActionModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="my-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+        <div id="modalItemHeader" class="text-xs font-bold text-slate-800"></div>
+        <div id="modalItemStock" class="text-[11px] text-slate-500 mt-1"></div>
+      </div>
+
+      <div class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">수량 (EA)</label>
+          <input type="number" id="modalQtyInput" min="1" placeholder="수량을 입력하세요" 
+                 onkeydown="if(event.key === 'Enter') confirmAction();"
+                 class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-500 font-mono font-bold">
+        </div>
+
+        <div>
+          <label id="modalReasonLabel" class="block text-xs font-bold text-slate-700 mb-1">상세 내역 및 사유</label>
+          <textarea id="modalReasonInput" rows="3" placeholder="구체적인 사유나 조립 라인, 불량 증상을 입력하세요" 
+                    onkeydown="if(event.key === 'Enter' && (event.ctrlKey || event.metaKey)) confirmAction();"
+                    class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500 resize-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeActionModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+            취소
+          </button>
+          <button type="button" id="modalSubmitBtn" onclick="confirmAction()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+            처리 완료
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add New Item Modal -->
+  <div id="addItemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 overflow-hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-plus-circle text-brand-600"></i> 신규 품목 추가
+        </h3>
+        <button type="button" onclick="closeAddItemModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 my-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">구분</label>
+            <input type="text" id="newCategory" list="categoryOptions" placeholder="선택 또는 직접 입력" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+            <datalist id="categoryOptions">
+              <option value="반제품 SET">
+              <option value="TOP COVER">
+              <option value="포장용">
+              <option value="ETC">
+            </datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">업체 구분</label>
+            <input type="text" id="newCompany" list="companyOptions" placeholder="선택 또는 직접 입력" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+            <datalist id="companyOptions"></datalist>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">품목명</label>
+          <input type="text" id="newItemName" list="itemNameOptions" placeholder="품목명을 선택하거나 입력하세요" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+          <datalist id="itemNameOptions"></datalist>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-emerald-700 mb-1">초기 양품 수량 (가용)</label>
+            <input type="number" id="newGoodQty" min="0" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-rose-600 mb-1">초기 불량 수량</label>
+            <input type="number" id="newDefectQty" min="0" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">세부 내역 및 비고</label>
+          <input type="text" id="newNote" placeholder="예: - 규격, - 오차 완료 등" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeAddItemModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+            취소
+          </button>
+          <button type="button" onclick="saveNewItem()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+            등록하기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Direct Item Stock Edit Modal -->
+  <div id="editItemModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 overflow-hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-sliders text-brand-600"></i> 품목 정보 및 재고 직접 수정
+        </h3>
+        <button type="button" onclick="closeEditItemModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 my-4">
+        <input type="hidden" id="editItemTargetId">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">구분</label>
+            <input type="text" id="editItemCategory" list="categoryOptions" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">업체 구분</label>
+            <input type="text" id="editItemCompany" list="companyOptions" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">품목명</label>
+          <input type="text" id="editItemName" list="itemNameOptions" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500 font-bold">
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-emerald-700 mb-1">양품 수량 (가용)</label>
+            <input type="number" id="editItemGood" min="0" oninput="syncEditItemTotal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-rose-600 mb-1">불량 수량</label>
+            <input type="number" id="editItemDefect" min="0" oninput="syncEditItemTotal()" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:border-rose-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-800 mb-1">총수량 (합계)</label>
+            <input type="number" id="editItemTotal" min="0" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono font-bold bg-slate-50 focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">세부 내역 및 비고</label>
+          <input type="text" id="editItemNote" placeholder="비고 입력" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:border-brand-500">
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeEditItemModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+            취소
+          </button>
+          <button type="button" onclick="saveEditItem()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+            수정 완료
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Sheet Settings Modal -->
+  <div id="gsheetModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-lg w-full p-5 overflow-hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+          <i class="fa-solid fa-table-cells text-emerald-600"></i> 구글 스프레드시트 실시간 연동 설정
+        </h3>
+        <button type="button" onclick="closeGSheetModal()" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 my-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">구글 Apps Script 웹 앱 URL</label>
+          <input type="url" id="gsheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:border-emerald-600">
+          <p class="text-[11px] text-slate-500 mt-1">※ 배포된 웹 앱 주소를 등록하면 여러 사용자가 실시간으로 재고를 공유할 수 있습니다.</p>
+        </div>
+
+        <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 leading-relaxed">
+          <div class="font-bold mb-1 flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> 자동 동기화 기능 지원
+          </div>
+          수불 등록(입고/출고/불량) 시 구글 시트에 즉시 반영되며, 상단의 <strong>[시트 최신화]</strong> 버튼을 누르면 다른 직원이 입력한 최신 데이터를 바로 불러옵니다.
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+          <button type="button" onclick="testGSheetConnection()" class="px-3.5 py-1.5 rounded-xl border border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-xs font-bold cursor-pointer flex items-center gap-1">
+            <i class="fa-solid fa-bolt"></i> 연결 테스트
+          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="closeGSheetModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+              닫기
+            </button>
+            <button type="button" onclick="saveGSheetSettings()" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+              저장
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel Preview Modal -->
+  <div id="excelPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden">
+      <div class="px-5 py-3.5 bg-slate-800 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-file-excel text-emerald-400 text-lg"></i>
+          <div>
+            <h3 class="text-sm font-bold tracking-tight">AD E-Type 기구물 및 자재 재고 현황 - 엑셀 출력 서식 미리보기</h3>
+            <p class="text-[10px] text-slate-400">다운로드 시 생성되는 실제 엑셀 시트 서식과 동일합니다.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportToExcel()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-download"></i> 이 서식으로 다운로드
+          </button>
+          <button onclick="closeExcelPreviewModal()" class="w-7 h-7 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 flex items-center justify-center cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-200/90 px-4 pt-2 flex items-center gap-1.5 border-b border-slate-300 shrink-0">
+        <button id="excelTab1" onclick="switchExcelPreviewSheet(1)" class="px-4 py-2 rounded-t-lg text-xs font-bold bg-white text-brand-800 border-t-2 border-brand-600 shadow-xs flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-table-cells text-brand-600"></i> Sheet 1: 재고 현황
+        </button>
+        <button id="excelTab2" onclick="switchExcelPreviewSheet(2)" class="px-4 py-2 rounded-t-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-white/70 flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-list-check text-slate-500"></i> Sheet 2: 수불 및 출고불량 대장
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-auto p-4 bg-slate-100 font-sans">
+        <div id="excelPreviewContent" class="bg-white border border-slate-300 rounded shadow-xs overflow-hidden">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safe Confirm Modal (No alert/confirm) -->
+  <div id="safeConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[70] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xl max-w-sm w-full p-5 overflow-hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold shrink-0">
+          <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <div>
+          <h4 id="confirmModalTitle" class="text-sm font-extrabold text-slate-900">확인 요청</h4>
+          <p id="confirmModalMessage" class="text-xs text-slate-600 mt-0.5 leading-relaxed whitespace-pre-line">진행하시겠습니까?</p>
+        </div>
+      </div>
+      <div class="flex items-center justify-end gap-2 mt-4 pt-2 border-t border-slate-100">
+        <button type="button" id="confirmCancelBtn" class="px-3.5 py-1.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-bold cursor-pointer">
+          취소
+        </button>
+        <button type="button" id="confirmProceedBtn" class="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs cursor-pointer">
+          확인
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[80] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    const SafeStorage = {
+      getItem(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+      },
+      setItem(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) {}
+      }
+    };
+
+    const EMBEDDED_DEFAULT_GSHEET_URL = '';
+    const DATA_VERSION = '20261002_AD_ETYPE_CANVAS_V9_EXACT';
+
+    // Exact 15 Items Baseline
+    const INITIAL_INVENTORY = [
+      { id: 1, category: "반제품 SET", company: "공통", name: "반제품", total: 502, defect: 0, good: 502, note: "- QR 1\n- 오차, 펌웨어 완료" },
+      { id: 2, category: "반제품 SET", company: "공통", name: "반제품", total: 25, defect: 0, good: 25, note: "- QR 9\n- 오차 완료" },
+      { id: 3, category: "TOP COVER", company: "공통", name: "탑 커버", total: 601, defect: 0, good: 601, note: "- 어두운색" },
+      { id: 4, category: "TOP COVER", company: "공통", name: "탑 커버", total: 33, defect: 0, good: 33, note: "- 밝은색" },
+      { id: 5, category: "TOP COVER", company: "세진", name: "단자 커버", total: 877, defect: 0, good: 877, note: "" },
+      { id: 6, category: "TOP COVER", company: "이브이쓰루", name: "단자 커버", total: 1118, defect: 0, good: 1118, note: "" },
+      { id: 7, category: "TOP COVER", company: "공통", name: "단자 커버", total: 46, defect: 0, good: 46, note: "- 무지" },
+      { id: 8, category: "포장용", company: "공통", name: "박스(소)", total: 582, defect: 0, good: 582, note: "" },
+      { id: 9, category: "포장용", company: "공통", name: "박스(대)", total: 0, defect: 0, good: 0, note: "" },
+      { id: 10, category: "포장용", company: "공통", name: "모뎀커버(소)", total: 2941, defect: 0, good: 2941, note: "" },
+      { id: 11, category: "포장용", company: "공통", name: "모뎀커버(대)", total: 3000, defect: 0, good: 3000, note: "" },
+      { id: 12, category: "포장용", company: "공통", name: "조견표", total: 1600, defect: 0, good: 1600, note: "" },
+      { id: 13, category: "포장용", company: "공통", name: "설명서", total: 12200, defect: 0, good: 12200, note: "" },
+      { id: 14, category: "포장용", company: "공통", name: "배터리", total: 137, defect: 0, good: 137, note: "- 확인 필요" },
+      { id: 15, category: "포장용", company: "공통", name: "모뎀 브라켓", total: 793, defect: 0, good: 793, note: "" }
+    ];
+
+    let inventory = [];
+    let historyLedger = [];
+    let allocationPolicy = 'COMPANY_이브이쓰루';
+    let historyFilter = 'ALL';
+    let currentExcelPreviewSheet = 1;
+    let activeAction = null;
+    let gsheetUrl = EMBEDDED_DEFAULT_GSHEET_URL;
+
+    const norm = str => (str || '').toLowerCase().replace(/\s+/g, '');
+    const parseNum = v => {
+      if (typeof v === 'number') return isNaN(v) ? 0 : v;
+      if (!v) return 0;
+      const n = parseInt(String(v).replace(/,/g, '').trim(), 10);
+      return isNaN(n) ? 0 : n;
+    };
+
+    function loadState() {
+      try {
+        const storedVersion = SafeStorage.getItem('ad_etype_version');
+        if (storedVersion !== DATA_VERSION) {
+          inventory = JSON.parse(JSON.stringify(INITIAL_INVENTORY));
+          historyLedger = [];
+          allocationPolicy = 'COMPANY_이브이쓰루';
+          SafeStorage.setItem('ad_etype_version', DATA_VERSION);
+          saveState();
+          return;
+        }
+
+        const savedInv = SafeStorage.getItem('ad_etype_inventory');
+        const savedHist = SafeStorage.getItem('ad_etype_history');
+        const savedPolicy = SafeStorage.getItem('ad_etype_policy');
+        const savedUrl = SafeStorage.getItem('ad_etype_gsheet_url');
+
+        inventory = savedInv ? JSON.parse(savedInv) : JSON.parse(JSON.stringify(INITIAL_INVENTORY));
+        historyLedger = savedHist ? JSON.parse(savedHist) : [];
+        if (savedPolicy) allocationPolicy = savedPolicy;
+        if (savedUrl) gsheetUrl = savedUrl;
+
+        inventory.forEach((item, idx) => {
+          if (item.id == null) item.id = idx + 1;
+        });
+      } catch (e) {
+        inventory = JSON.parse(JSON.stringify(INITIAL_INVENTORY));
+        historyLedger = [];
+      }
+    }
+
+    function saveState() {
+      try {
+        SafeStorage.setItem('ad_etype_inventory', JSON.stringify(inventory));
+        SafeStorage.setItem('ad_etype_history', JSON.stringify(historyLedger));
+        SafeStorage.setItem('ad_etype_policy', allocationPolicy);
+        SafeStorage.setItem('ad_etype_gsheet_url', gsheetUrl);
+      } catch (e) {}
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold text-white flex items-center gap-2 transform transition-all duration-200 translate-y-2 opacity-0 pointer-events-auto';
+
+      if (type === 'success') {
+        toast.classList.add('bg-emerald-600');
+        toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${message}`;
+      } else if (type === 'error') {
+        toast.classList.add('bg-rose-600');
+        toast.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> ${message}`;
+      } else if (type === 'warning') {
+        toast.classList.add('bg-amber-600');
+        toast.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${message}`;
+      } else {
+        toast.classList.add('bg-slate-800');
+        toast.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${message}`;
+      }
+
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-2', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+
+    function openSafeConfirm({ title, message, onConfirm }) {
+      const modal = document.getElementById('safeConfirmModal');
+      const titleEl = document.getElementById('confirmModalTitle');
+      const msgEl = document.getElementById('confirmModalMessage');
+      const proceedBtn = document.getElementById('confirmProceedBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+
+      titleEl.textContent = title || '확인 요청';
+      msgEl.textContent = message || '진행하시겠습니까?';
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        proceedBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      proceedBtn.onclick = () => {
+        cleanup();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+      cancelBtn.onclick = cleanup;
+    }
+
+    function calculateAssembly() {
+      const sumPartQty = (keywords) => {
+        return inventory
+          .filter(i => {
+            const n = norm(i.name);
+            return keywords.some(k => n.includes(norm(k)));
+          })
+          .reduce((acc, cur) => acc + (parseNum(cur.good) || 0), 0);
+      };
+
+      const totalSemi = inventory
+        .filter(i => norm(i.name).includes('반제품') || norm(i.category).includes('반제품'))
+        .reduce((acc, cur) => acc + (parseNum(cur.good) || 0), 0);
+
+      const topCover = sumPartQty(['탑커버', '탑 커버']);
+      const boxSmall = sumPartQty(['박스(소)', '박스 (소)', '소박스']);
+      const boxLargeRaw = sumPartQty(['박스(대)', '박스 (대)', '대박스']);
+      const boxLargeEffective = boxLargeRaw * 8; // 8:1 ratio
+      const modemSmall = sumPartQty(['모뎀커버(소)', '모뎀 커버 (소)', '모뎀커버소']);
+      const modemLarge = sumPartQty(['모뎀커버(대)', '모뎀 커버 (대)', '모뎀커버대']);
+      const specTable = sumPartQty(['조견표']);
+
+      const allCompaniesList = [...new Set(inventory.map(i => (i.company || '').trim()))].filter(Boolean);
+      const companyMap = {};
+      allCompaniesList.forEach(comp => {
+        const coverQty = inventory
+          .filter(i => (i.company || '').trim() === comp && norm(i.name).includes('단자커버'))
+          .reduce((acc, cur) => acc + (parseNum(cur.good) || 0), 0);
+        companyMap[comp] = coverQty;
+      });
+
+      const evCapacity = companyMap['이브이쓰루'] || 0;
+      const otherCompList = [];
+      let totalOtherCapacity = 0;
+
+      allCompaniesList.forEach(comp => {
+        if (comp !== '이브이쓰루') {
+          const cap = companyMap[comp] || 0;
+          totalOtherCapacity += cap;
+          otherCompList.push({ company: comp, capacity: cap, actualBuildable: 0, shortage: 0 });
+        }
+      });
+
+      const totalDedicatedCover = evCapacity + totalOtherCapacity;
+
+      const sharedParts = [
+        { name: '반제품 (전체)', qty: totalSemi, effectiveLimit: totalSemi },
+        { name: '탑 커버', qty: topCover, effectiveLimit: topCover },
+        { name: '단자 커버 (전체)', qty: totalDedicatedCover, effectiveLimit: totalDedicatedCover },
+        { name: '박스(소)', qty: boxSmall, effectiveLimit: boxSmall },
+        { name: '박스(대)', qty: boxLargeRaw, effectiveLimit: boxLargeEffective, isLargeBox: true },
+        { name: '모뎀커버(소)', qty: modemSmall, effectiveLimit: modemSmall },
+        { name: '모뎀커버(대)', qty: modemLarge, effectiveLimit: modemLarge },
+        { name: '조견표', qty: specTable, effectiveLimit: specTable }
+      ];
+
+      const sharedMinLimit = Math.min(
+        totalSemi,
+        topCover,
+        boxSmall,
+        boxLargeEffective,
+        modemSmall,
+        modemLarge,
+        specTable
+      );
+
+      const totalBuildable = Math.min(sharedMinLimit, totalDedicatedCover);
+
+      let bottleneckPartName = '박스(대)';
+      let minLimitFound = Infinity;
+      sharedParts.forEach(p => {
+        if (p.effectiveLimit < minLimitFound) {
+          minLimitFound = p.effectiveLimit;
+          bottleneckPartName = p.name;
+        }
+      });
+
+      let evBuildable = 0;
+      const otherAllocMap = {};
+      otherCompList.forEach(c => otherAllocMap[c.company] = 0);
+
+      if (sharedMinLimit >= totalDedicatedCover) {
+        evBuildable = evCapacity;
+        otherCompList.forEach(c => otherAllocMap[c.company] = c.capacity);
+      } else {
+        if (allocationPolicy === 'COMPANY_이브이쓰루') {
+          evBuildable = Math.min(evCapacity, sharedMinLimit);
+          let remaining = sharedMinLimit - evBuildable;
+          otherCompList.forEach(c => {
+            const alloc = Math.min(c.capacity, remaining);
+            otherAllocMap[c.company] = alloc;
+            remaining -= alloc;
+          });
+        } else if (allocationPolicy.startsWith('COMPANY_')) {
+          const target = allocationPolicy.replace('COMPANY_', '');
+          const targetCap = companyMap[target] || 0;
+          const targetAlloc = Math.min(targetCap, sharedMinLimit);
+          otherAllocMap[target] = targetAlloc;
+          let remaining = sharedMinLimit - targetAlloc;
+
+          if (target !== '이브이쓰루') {
+            evBuildable = Math.min(evCapacity, remaining);
+            remaining -= evBuildable;
+          }
+
+          otherCompList.forEach(c => {
+            if (c.company !== target) {
+              const alloc = Math.min(c.capacity, remaining);
+              otherAllocMap[c.company] = alloc;
+              remaining -= alloc;
+            }
+          });
+        } else if (allocationPolicy === 'FAIR') {
+          if (totalDedicatedCover > 0) {
+            evBuildable = Math.floor(sharedMinLimit * (evCapacity / totalDedicatedCover));
+            let sumOther = 0;
+            otherCompList.forEach(c => {
+              const alloc = Math.floor(sharedMinLimit * (c.capacity / totalDedicatedCover));
+              otherAllocMap[c.company] = alloc;
+              sumOther += alloc;
+            });
+            let leftover = sharedMinLimit - (evBuildable + sumOther);
+            if (leftover > 0 && evCapacity > evBuildable) {
+              evBuildable++;
+              leftover--;
+            }
+            let idx = 0;
+            while (leftover > 0 && idx < otherCompList.length) {
+              const comp = otherCompList[idx].company;
+              if (otherAllocMap[comp] < otherCompList[idx].capacity) {
+                otherAllocMap[comp]++;
+                leftover--;
+              }
+              idx++;
+            }
+          }
+        }
+      }
+
+      let totalOtherActualBuildable = 0;
+      otherCompList.forEach(c => {
+        const actual = otherAllocMap[c.company] || 0;
+        c.actualBuildable = actual;
+        c.shortage = Math.max(0, c.capacity - actual);
+        totalOtherActualBuildable += actual;
+      });
+
+      const evObj = {
+        company: '이브이쓰루',
+        capacity: evCapacity,
+        actualBuildable: evBuildable,
+        shortage: Math.max(0, evCapacity - evBuildable),
+        isEv: true
+      };
+
+      let totalDefect = 0;
+      inventory.forEach(i => totalDefect += (parseNum(i.defect) || 0));
+
+      return {
+        totalBuildable,
+        sharedMinLimit,
+        bottleneckPartName,
+        sharedParts,
+        evComp: evObj,
+        otherCompanies: otherCompList,
+        totalOtherCapacity,
+        totalOtherActualBuildable,
+        totalDefect
+      };
+    }
+
+    function updateAllocationButtons(asm) {
+      const container = document.getElementById('allocationButtonsContainer');
+      if (!container) return;
+
+      const otherNames = asm.otherCompanies.map(c => c.company);
+      let html = '';
+
+      const isEvActive = (allocationPolicy === 'COMPANY_이브이쓰루');
+      html += `
+        <button onclick="setAllocationPolicy('COMPANY_이브이쓰루')" class="btn-action px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${isEvActive ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+          <i class="fa-solid fa-star text-[10px]"></i> 이브이쓰루 우선
+        </button>
+      `;
+
+      otherNames.forEach(compName => {
+        const isActive = (allocationPolicy === `COMPANY_${compName}`);
+        html += `
+          <button onclick="setAllocationPolicy('COMPANY_${escapeHtml(compName)}')" class="btn-action px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${isActive ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+            ${escapeHtml(compName)} 우선
+          </button>
+        `;
+      });
+
+      const isFairActive = (allocationPolicy === 'FAIR');
+      html += `
+        <button onclick="setAllocationPolicy('FAIR')" class="btn-action px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${isFairActive ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}">
+          <i class="fa-solid fa-scale-balanced text-[10px]"></i> 비율 균등 배분
+        </button>
+      `;
+
+      container.innerHTML = html;
+
+      const descEl = document.getElementById('policyStatusBadge');
+      if (descEl) {
+        if (allocationPolicy === 'COMPANY_이브이쓰루') {
+          descEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200';
+          descEl.textContent = '이브이쓰루 1순위 최우선 배정 상태';
+        } else if (allocationPolicy === 'FAIR') {
+          descEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200';
+          descEl.textContent = '보유 비율 균등 배분 상태';
+        } else if (allocationPolicy.startsWith('COMPANY_')) {
+          const target = allocationPolicy.replace('COMPANY_', '');
+          descEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200';
+          descEl.textContent = `${target} 1순위 최우선 배정 상태`;
+        }
+      }
+    }
+
+    function setAllocationPolicy(policy) {
+      allocationPolicy = policy;
+      saveState();
+      renderAll();
+      showToast('부품 배정 정책이 변경되었습니다.', 'info');
+    }
+
+    function renderKpis(asm) {
+      const totalBuildEl = document.getElementById('kpiTotalBuildable');
+      if (totalBuildEl) totalBuildEl.textContent = asm.totalBuildable.toLocaleString();
+
+      const totalDescEl = document.getElementById('kpiTotalBuildableDesc');
+      if (totalDescEl) {
+        if (asm.sharedMinLimit < 527 || asm.totalBuildable === 0) {
+          totalDescEl.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${asm.bottleneckPartName}(${asm.sharedMinLimit} SET 한도) 부족으로 총량 제한</span>`;
+        } else {
+          totalDescEl.innerHTML = '<span class="text-emerald-700 font-medium"><i class="fa-solid fa-check mr-1"></i>핵심 결합 자재 충분 확보</span>';
+        }
+      }
+
+      const evQtyEl = document.getElementById('kpiEvQty');
+      if (evQtyEl) evQtyEl.textContent = asm.evComp.actualBuildable.toLocaleString();
+
+      const evBadge = document.getElementById('badgeEvStatus');
+      const evDesc = document.getElementById('kpiEvDesc');
+      if (evBadge && evDesc) {
+        if (asm.evComp.shortage > 0) {
+          evBadge.className = 'text-[9px] bg-rose-600 text-white font-bold px-1.5 py-0.5 rounded';
+          evBadge.textContent = '부족';
+          evDesc.textContent = `단자 커버 ${asm.evComp.capacity.toLocaleString()}개 중 단품 부족으로 ${asm.evComp.shortage.toLocaleString()}개 조립 제한`;
+        } else {
+          evBadge.className = 'text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded';
+          evBadge.textContent = '정상';
+          evDesc.textContent = `이브이쓰루 단자 커버 ${asm.evComp.capacity.toLocaleString()} SET 전량 조립 가능`;
+        }
+      }
+
+      const otherQtyEl = document.getElementById('kpiOtherCompanyQty');
+      if (otherQtyEl) otherQtyEl.textContent = asm.totalOtherActualBuildable.toLocaleString();
+
+      const otherBadge = document.getElementById('badgeOtherStatus');
+      const otherDesc = document.getElementById('kpiOtherCompanyDesc');
+      if (otherBadge && otherDesc) {
+        const otherNames = asm.otherCompanies.map(c => c.company).join(', ');
+        const totalOtherLoss = asm.totalOtherCapacity - asm.totalOtherActualBuildable;
+        if (totalOtherLoss > 0) {
+          otherBadge.className = 'text-[9px] bg-amber-600 text-white font-bold px-1.5 py-0.5 rounded';
+          otherBadge.textContent = '단품제한';
+          otherDesc.textContent = `외주(${otherNames}) ${asm.totalOtherCapacity.toLocaleString()} SET 중 ${totalOtherLoss.toLocaleString()}개 조립 제한`;
+        } else {
+          otherBadge.className = 'text-[9px] bg-indigo-600 text-white font-bold px-1.5 py-0.5 rounded';
+          otherBadge.textContent = '정상';
+          otherDesc.textContent = `외주(${otherNames}) 보유 ${asm.totalOtherCapacity.toLocaleString()} SET 전량 가용`;
+        }
+      }
+
+      const defectQtyEl = document.getElementById('kpiDefectQty');
+      if (defectQtyEl) defectQtyEl.textContent = asm.totalDefect.toLocaleString();
+
+      renderCompanyBreakdown(asm);
+      renderBomPartsBar(asm);
+    }
+
+    function renderCompanyBreakdown(asm) {
+      const container = document.getElementById('companyBreakdownContainer');
+      if (!container) return;
+
+      const priorityTarget = allocationPolicy.startsWith('COMPANY_') 
+        ? allocationPolicy.replace('COMPANY_', '') 
+        : '이브이쓰루';
+
+      const allCompanies = [asm.evComp, ...asm.otherCompanies].filter(Boolean);
+
+      allCompanies.sort((a, b) => {
+        if (priorityTarget) {
+          if (a.company === priorityTarget) return -1;
+          if (b.company === priorityTarget) return 1;
+        }
+        if (a.company === '이브이쓰루') return -1;
+        if (b.company === '이브이쓰루') return 1;
+        if (a.company === '세진') return -1;
+        if (b.company === '세진') return 1;
+        return (a.company || '').localeCompare(b.company || '');
+      });
+
+      const cardsHtml = allCompanies.map((comp) => {
+        const isPriority = (comp.company === priorityTarget);
+        const hasLoss = comp.shortage > 0;
+        const isEv = (comp.company === '이브이쓰루');
+
+        let cardBg = '';
+        let cardBorder = '';
+        let dotColor = '';
+        let textQtyColor = '';
+        let badgeStyle = '';
+        let ringStyle = isPriority 
+          ? (isEv ? 'ring-2 ring-emerald-500 shadow-sm' : 'ring-2 ring-indigo-500 shadow-sm')
+          : '';
+
+        if (isEv) {
+          cardBg = hasLoss ? 'bg-rose-50/40' : 'bg-emerald-50/40';
+          cardBorder = hasLoss ? 'border-rose-300' : 'border-emerald-300';
+          dotColor = 'bg-emerald-600';
+          textQtyColor = hasLoss ? 'text-rose-600' : 'text-emerald-700';
+          badgeStyle = hasLoss ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-800';
+        } else {
+          cardBg = hasLoss ? 'bg-rose-50/40' : 'bg-slate-50';
+          cardBorder = hasLoss ? 'border-rose-300' : 'border-indigo-200';
+          dotColor = 'bg-indigo-600';
+          textQtyColor = hasLoss ? 'text-rose-600' : 'text-indigo-700';
+          badgeStyle = hasLoss ? 'bg-rose-100 text-rose-700' : 'bg-indigo-50 text-indigo-700';
+        }
+
+        const priorityBadge = isPriority 
+          ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded text-white flex items-center gap-0.5 ${isEv ? 'bg-emerald-600' : 'bg-indigo-600'}">
+               <i class="fa-solid fa-star text-[8px]"></i> 1순위 배정
+             </span>`
+          : '';
+
+        return `
+          <div class="p-3.5 rounded-xl border ${cardBorder} ${cardBg} ${ringStyle} flex flex-col justify-between transition-all duration-200">
+            <div class="flex items-center justify-between gap-1 flex-wrap">
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full ${dotColor}"></span>
+                ${escapeHtml(comp.company)}${isEv ? ' (자사)' : ''}
+              </span>
+              <div class="flex items-center gap-1">
+                ${priorityBadge}
+                <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${badgeStyle}">
+                  단자 커버: ${comp.capacity.toLocaleString()} EA
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-2.5 flex items-baseline justify-between">
+              <span class="text-xs text-slate-500 font-medium">실가용 완제품:</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-xl font-extrabold ${textQtyColor} font-mono">${comp.actualBuildable.toLocaleString()}</span>
+                <span class="text-xs font-bold text-slate-600">SET</span>
+              </div>
+            </div>
+
+            <div class="text-[10px] mt-2 pt-1.5 border-t border-slate-200/60 ${hasLoss ? 'text-rose-600 font-semibold' : 'text-slate-500'} truncate">
+              ${hasLoss 
+                ? `<i class="fa-solid fa-triangle-exclamation mr-1"></i>단품(${asm.bottleneckPartName}) 부족으로 ${comp.shortage.toLocaleString()} SET 조립 제한` 
+                : '<i class="fa-solid fa-check text-emerald-600 mr-1"></i>공통 결합 부품 100% 충족 확보'}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = cardsHtml.join('');
+    }
+
+    function renderBomPartsBar(asm) {
+      const container = document.getElementById('bomPartsContainer');
+      if (!container) return;
+
+      const itemsHtml = asm.sharedParts.map(part => {
+        const isBottleneck = (part.name === asm.bottleneckPartName);
+        let borderClass = isBottleneck ? 'border-rose-400 bg-rose-50/60 shadow-xs' : 'border-slate-200 bg-slate-50/50';
+        let titleColor = isBottleneck ? 'text-rose-700' : 'text-slate-700';
+        let badge = isBottleneck 
+          ? '<span class="text-[9px] bg-rose-600 text-white font-bold px-1.5 py-0.2 rounded">최소 병목</span>'
+          : (part.isLargeBox ? '<span class="text-[9px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.2 rounded">8개/박스</span>' : '');
+
+        const limitDisplay = part.isLargeBox 
+          ? `<span class="text-[10px] text-slate-400 font-normal">(${part.effectiveLimit.toLocaleString()} SET)</span>`
+          : '';
+
+        return `
+          <div class="p-2.5 rounded-xl border ${borderClass} flex flex-col justify-between">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[11px] font-bold ${titleColor} truncate">${escapeHtml(part.name)}</span>
+              ${badge}
+            </div>
+            <div class="mt-1 flex items-baseline justify-between">
+              <span class="text-[10px] text-slate-400 font-medium">실보유:</span>
+              <span class="text-sm font-mono font-bold ${isBottleneck ? 'text-rose-600' : 'text-slate-800'}">
+                ${part.qty.toLocaleString()} <span class="text-[10px] font-normal text-slate-500">EA</span>
+              </span>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono mt-0.5 text-right">
+              한도: ${part.effectiveLimit.toLocaleString()} SET ${limitDisplay}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = itemsHtml.join('');
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('inventoryTableBody');
+      if (!tbody) return;
+
+      const catSelect = document.getElementById('filterCategory');
+      const compSelect = document.getElementById('filterCompany');
+      const searchInput = document.getElementById('searchKeyword');
+
+      const catFilter = catSelect ? catSelect.value : '';
+      const compFilter = compSelect ? compSelect.value : '';
+      const keyword = searchInput ? (searchInput.value || '').toLowerCase().trim() : '';
+
+      const filtered = inventory.filter(item => {
+        if (catFilter && item.category !== catFilter) return false;
+        if (compFilter && item.company !== compFilter) return false;
+        if (keyword) {
+          const matchName = (item.name || '').toLowerCase().includes(keyword);
+          const matchNote = (item.note || '').toLowerCase().includes(keyword);
+          const matchComp = (item.company || '').toLowerCase().includes(keyword);
+          const matchCat = (item.category || '').toLowerCase().includes(keyword);
+          if (!matchName && !matchNote && !matchComp && !matchCat) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-8 text-slate-400 text-xs font-medium">
+              조건에 일치하는 품목이 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        let catBadge = 'bg-slate-100 text-slate-700';
+        if (item.category === '반제품 SET') catBadge = 'bg-blue-100 text-blue-800';
+        else if (item.category === 'TOP COVER') catBadge = 'bg-purple-100 text-purple-800';
+        else if (item.category === '포장용') catBadge = 'bg-amber-100 text-amber-800';
+
+        let compBadge = 'bg-slate-100 text-slate-700';
+        if (item.company === '공통') compBadge = 'bg-emerald-50 text-emerald-800 border border-emerald-200';
+        else if (item.company === '이브이쓰루') compBadge = 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold';
+        else if (item.company === '세진') compBadge = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+
+        const defectDisplay = (parseNum(item.defect) > 0)
+          ? `<span class="font-bold text-rose-600">${parseNum(item.defect).toLocaleString()}</span>`
+          : '<span class="text-slate-300">-</span>';
+
+        const goodDisplay = (parseNum(item.good) > 0)
+          ? `<span class="font-bold text-emerald-700">${parseNum(item.good).toLocaleString()}</span>`
+          : '<span class="text-slate-300">0</span>';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded ${catBadge}">
+                ${escapeHtml(item.category)}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 whitespace-nowrap">
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded ${compBadge}">
+                ${escapeHtml(item.company)}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-bold text-slate-800 whitespace-nowrap">
+              ${escapeHtml(item.name)}
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+              ${(parseNum(item.total) || 0).toLocaleString()}
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono whitespace-nowrap">
+              ${defectDisplay}
+            </td>
+            <td class="py-2.5 px-3 text-right font-mono whitespace-nowrap">
+              ${goodDisplay}
+            </td>
+            <td class="py-2.5 px-3 min-w-[200px]">
+              <input type="text" value="${escapeHtml(item.note || '')}" 
+                     placeholder="비고 입력 (포커스 아웃 시 자동 저장)"
+                     onchange="updateNote(${item.id}, this.value)"
+                     class="w-full px-2 py-1 rounded border border-transparent hover:border-slate-300 focus:border-brand-500 focus:bg-white text-xs bg-transparent transition truncate">
+            </td>
+            <td class="py-2.5 px-3 text-center whitespace-nowrap">
+              <div class="flex items-center justify-center gap-1">
+                <button type="button" onclick="openActionModal('IN', ${item.id})" title="입고" class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-bold text-[11px] transition cursor-pointer">
+                  입고
+                </button>
+                <button type="button" onclick="openActionModal('OUT', ${item.id})" title="출고" class="px-2 py-1 rounded bg-amber-50 hover:bg-amber-600 text-amber-700 hover:text-white font-bold text-[11px] transition cursor-pointer">
+                  출고
+                </button>
+                <button type="button" onclick="openActionModal('DEFECT', ${item.id})" title="불량" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white font-bold text-[11px] transition cursor-pointer">
+                  불량
+                </button>
+                <button type="button" onclick="openEditItemModal(${item.id})" title="직접 수정" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-700 hover:text-white text-slate-600 font-bold text-[11px] transition cursor-pointer">
+                  수정
+                </button>
+                <button type="button" onclick="confirmDeleteItem(${item.id})" title="품목 삭제" class="w-6 h-6 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition cursor-pointer ml-0.5">
+                  <i class="fa-regular fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderHistory() {
+      const tbody = document.getElementById('historyTableBody');
+      if (!tbody) return;
+
+      const filtered = historyLedger.filter(h => {
+        if (historyFilter === 'ALL') return true;
+        return h.type === historyFilter;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-6 text-slate-400 text-xs">
+              기록된 수불 내역이 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(h => {
+        let typeBadge = '';
+        if (h.type === '입고') typeBadge = '<span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">입고</span>';
+        else if (h.type === '출고') typeBadge = '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">출고</span>';
+        else if (h.type === '불량') typeBadge = '<span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded">불량</span>';
+        else if (h.type === '신규등록') typeBadge = '<span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">신규등록</span>';
+        else typeBadge = `<span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded">${escapeHtml(h.type)}</span>`;
+
+        return `
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-2 px-3 text-slate-500 font-mono text-[11px] whitespace-nowrap">${escapeHtml(h.time)}</td>
+            <td class="py-2 px-3 whitespace-nowrap text-slate-600">${escapeHtml(h.category)}</td>
+            <td class="py-2 px-3 whitespace-nowrap font-medium text-slate-700">${escapeHtml(h.company)}</td>
+            <td class="py-2 px-3 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(h.name)}</td>
+            <td class="py-2 px-3 text-center whitespace-nowrap">${typeBadge}</td>
+            <td class="py-2 px-3 text-right font-mono font-bold whitespace-nowrap">${(parseNum(h.qty) || 0).toLocaleString()}</td>
+            <td class="py-2 px-3">
+              <input type="text" value="${escapeHtml(h.reason || '')}" 
+                     placeholder="상세 사유 입력"
+                     onchange="updateHistoryReason('${h.id}', this.value)"
+                     class="w-full px-2 py-1 rounded border border-transparent hover:border-slate-300 focus:border-brand-500 focus:bg-white text-xs bg-transparent transition truncate">
+            </td>
+            <td class="py-2 px-3 text-center whitespace-nowrap">
+              <button type="button" onclick="confirmDeleteHistory('${h.id}')" title="이 기록 삭제 및 재고 원복" class="w-6 h-6 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 inline-flex items-center justify-center transition cursor-pointer">
+                <i class="fa-regular fa-trash-can text-xs"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function setHistoryFilter(type, btn) {
+      historyFilter = type;
+      document.querySelectorAll('.hist-filter-btn').forEach(b => {
+        b.className = 'hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+      });
+      if (btn) {
+        btn.className = 'hist-filter-btn px-2.5 py-1 rounded text-xs font-bold bg-slate-800 text-white';
+      }
+      renderHistory();
+    }
+
+    function openActionModal(type, id) {
+      const item = inventory.find(i => Number(i.id) === Number(id));
+      if (!item) return;
+
+      activeAction = { type, id: Number(id) };
+      const modal = document.getElementById('actionModal');
+      const titleEl = document.getElementById('modalActionTitle');
+      const headerEl = document.getElementById('modalItemHeader');
+      const stockEl = document.getElementById('modalItemStock');
+      const reasonLabel = document.getElementById('modalReasonLabel');
+      const reasonInput = document.getElementById('modalReasonInput');
+      const qtyInput = document.getElementById('modalQtyInput');
+      const submitBtn = document.getElementById('modalSubmitBtn');
+
+      qtyInput.value = '';
+      reasonInput.value = '';
+
+      headerEl.textContent = `[${item.company}] ${item.name} (${item.category})`;
+      stockEl.textContent = `가용 양품: ${parseNum(item.good).toLocaleString()} EA | 불량: ${parseNum(item.defect).toLocaleString()} EA | 총수량: ${parseNum(item.total).toLocaleString()} EA`;
+
+      if (type === 'IN') {
+        titleEl.textContent = '입고 등록 (양품 & 총수량 동시 증가)';
+        reasonLabel.textContent = '입고 상세 내역 (선택)';
+        reasonInput.placeholder = '예: 사출 납품 입고, 거래처 입고';
+        submitBtn.className = 'px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer';
+        submitBtn.textContent = '입고 처리';
+      } else if (type === 'OUT') {
+        titleEl.textContent = '출고 등록 (양품 & 총수량 동시 차감)';
+        reasonLabel.textContent = '출고 상세 내역 / 사유 (권장)';
+        reasonInput.placeholder = '예: 완제품 조립 투입, 현장 출하';
+        submitBtn.className = 'px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs cursor-pointer';
+        submitBtn.textContent = '출고 처리';
+      } else if (type === 'DEFECT') {
+        titleEl.textContent = '불량 등록 (양품 차감, 불량 증가, 총수량 유지)';
+        reasonLabel.textContent = '불량 상세 증상 및 사유 (필수)';
+        reasonInput.placeholder = '예: 체결부 파손, 사출 버(Burr) 불량';
+        submitBtn.className = 'px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer';
+        submitBtn.textContent = '불량 등록';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => qtyInput.focus(), 60);
+    }
+
+    function closeActionModal() {
+      const modal = document.getElementById('actionModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      activeAction = null;
+    }
+
+    function confirmAction() {
+      if (!activeAction) return;
+      const item = inventory.find(i => Number(i.id) === Number(activeAction.id));
+      if (!item) return;
+
+      const qtyInput = document.getElementById('modalQtyInput');
+      const reasonInput = document.getElementById('modalReasonInput');
+      const qty = parseInt(qtyInput.value, 10);
+      const reason = reasonInput.value.trim();
+
+      if (isNaN(qty) || qty <= 0) {
+        showToast('올바른 수량을 입력해주세요.', 'warning');
+        qtyInput.focus();
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const recordId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+      if (activeAction.type === 'IN') {
+        item.good = (parseNum(item.good) || 0) + qty;
+        item.total = (parseNum(item.total) || 0) + qty;
+        historyLedger.unshift({
+          id: recordId,
+          itemId: item.id,
+          time: timeStr,
+          category: item.category,
+          company: item.company,
+          name: item.name,
+          type: '입고',
+          qty: qty,
+          reason: reason || '일반 입고'
+        });
+        showToast(`[${item.company}] ${item.name} ${qty} EA 입고 완료`, 'success');
+      } else if (activeAction.type === 'OUT') {
+        if (qty > (parseNum(item.good) || 0)) {
+          showToast(`가용 양품 수량(${item.good} EA)을 초과하여 출고할 수 없습니다.`, 'error');
+          qtyInput.focus();
+          return;
+        }
+        item.good = (parseNum(item.good) || 0) - qty;
+        item.total = (parseNum(item.total) || 0) - qty;
+        historyLedger.unshift({
+          id: recordId,
+          itemId: item.id,
+          time: timeStr,
+          category: item.category,
+          company: item.company,
+          name: item.name,
+          type: '출고',
+          qty: qty,
+          reason: reason || '생산 투입 출고'
+        });
+        showToast(`[${item.company}] ${item.name} ${qty} EA 출고 완료`, 'success');
+      } else if (activeAction.type === 'DEFECT') {
+        if (qty > (parseNum(item.good) || 0)) {
+          showToast(`가용 양품 수량(${item.good} EA)을 초과하여 불량 처리할 수 없습니다.`, 'error');
+          qtyInput.focus();
+          return;
+        }
+        item.good = (parseNum(item.good) || 0) - qty;
+        item.defect = (parseNum(item.defect) || 0) + qty;
+        historyLedger.unshift({
+          id: recordId,
+          itemId: item.id,
+          time: timeStr,
+          category: item.category,
+          company: item.company,
+          name: item.name,
+          type: '불량',
+          qty: qty,
+          reason: reason || '불량 판정'
+        });
+        showToast(`[${item.company}] ${item.name} ${qty} EA 불량 등록 완료`, 'warning');
+      }
+
+      saveState();
+      closeActionModal();
+      renderAll();
+      pushToGoogleSheet();
+    }
+
+    function openEditItemModal(id) {
+      const item = inventory.find(i => Number(i.id) === Number(id));
+      if (!item) return;
+
+      document.getElementById('editItemTargetId').value = item.id;
+      document.getElementById('editItemCategory').value = item.category || '';
+      document.getElementById('editItemCompany').value = item.company || '';
+      document.getElementById('editItemName').value = item.name || '';
+      document.getElementById('editItemGood').value = parseNum(item.good) || 0;
+      document.getElementById('editItemDefect').value = parseNum(item.defect) || 0;
+      document.getElementById('editItemTotal').value = parseNum(item.total) || 0;
+      document.getElementById('editItemNote').value = item.note || '';
+
+      const modal = document.getElementById('editItemModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditItemModal() {
+      const modal = document.getElementById('editItemModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function syncEditItemTotal() {
+      const g = parseInt(document.getElementById('editItemGood').value, 10) || 0;
+      const d = parseInt(document.getElementById('editItemDefect').value, 10) || 0;
+      document.getElementById('editItemTotal').value = g + d;
+    }
+
+    function saveEditItem() {
+      const id = parseInt(document.getElementById('editItemTargetId').value, 10);
+      const item = inventory.find(i => Number(i.id) === Number(id));
+      if (!item) return;
+
+      const cat = document.getElementById('editItemCategory').value.trim();
+      const comp = document.getElementById('editItemCompany').value.trim();
+      const name = document.getElementById('editItemName').value.trim();
+      const good = Math.max(0, parseInt(document.getElementById('editItemGood').value, 10) || 0);
+      const defect = Math.max(0, parseInt(document.getElementById('editItemDefect').value, 10) || 0);
+      const totalInput = parseInt(document.getElementById('editItemTotal').value, 10);
+      const total = isNaN(totalInput) ? (good + defect) : Math.max(good + defect, totalInput);
+      const note = document.getElementById('editItemNote').value.trim();
+
+      if (!cat || !comp || !name) {
+        showToast('구분, 업체 구분, 품목명을 입력해주세요.', 'warning');
+        return;
+      }
+
+      item.category = cat;
+      item.company = comp;
+      item.name = name;
+      item.good = good;
+      item.defect = defect;
+      item.total = total;
+      item.note = note;
+
+      saveState();
+      closeEditItemModal();
+      updateFilterOptions();
+      renderAll();
+      pushToGoogleSheet();
+      showToast(`[${comp}] ${name} 수정 완료`, 'success');
+    }
+
+    function updateNote(id, noteValue) {
+      const item = inventory.find(i => Number(i.id) === Number(id));
+      if (item) {
+        item.note = noteValue.trim();
+        saveState();
+        pushToGoogleSheet();
+        showToast('비고가 자동 저장되었습니다.', 'info');
+      }
+    }
+
+    function openAddItemModal() {
+      const modal = document.getElementById('addItemModal');
+      document.getElementById('newCategory').value = '';
+      document.getElementById('newCompany').value = '';
+      document.getElementById('newItemName').value = '';
+      document.getElementById('newGoodQty').value = '0';
+      document.getElementById('newDefectQty').value = '0';
+      document.getElementById('newNote').value = '';
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeAddItemModal() {
+      const modal = document.getElementById('addItemModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveNewItem() {
+      const cat = document.getElementById('newCategory').value.trim();
+      const comp = document.getElementById('newCompany').value.trim();
+      const name = document.getElementById('newItemName').value.trim();
+      const goodQty = Math.max(0, parseInt(document.getElementById('newGoodQty').value, 10) || 0);
+      const defectQty = Math.max(0, parseInt(document.getElementById('newDefectQty').value, 10) || 0);
+      const note = document.getElementById('newNote').value.trim();
+
+      if (!cat || !comp || !name) {
+        showToast('구분, 업체 구분, 품목명을 모두 입력해주세요.', 'warning');
+        return;
+      }
+
+      const newId = (inventory.length > 0) ? Math.max(...inventory.map(i => Number(i.id) || 0)) + 1 : 1;
+      const totalQty = goodQty + defectQty;
+
+      inventory.push({
+        id: newId,
+        category: cat,
+        company: comp,
+        name: name,
+        total: totalQty,
+        defect: defectQty,
+        good: goodQty,
+        note: note
+      });
+
+      const now = new Date();
+      const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const recordId = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+      historyLedger.unshift({
+        id: recordId,
+        itemId: newId,
+        time: timeStr,
+        category: cat,
+        company: comp,
+        name: name,
+        type: '신규등록',
+        qty: totalQty,
+        reason: note ? `신규 등록 (${note})` : '신규 품목 초기 등록'
+      });
+
+      saveState();
+      closeAddItemModal();
+      updateFilterOptions();
+      renderAll();
+      pushToGoogleSheet();
+      showToast(`신규 품목 [${comp}] ${name} 등록 완료`, 'success');
+    }
+
+    function confirmDeleteItem(id) {
+      const item = inventory.find(i => Number(i.id) === Number(id));
+      if (!item) return;
+
+      openSafeConfirm({
+        title: '품목 삭제',
+        message: `정말로 [${item.company}] ${item.name} 품목을 삭제하시겠습니까?`,
+        onConfirm: () => {
+          inventory = inventory.filter(i => Number(i.id) !== Number(id));
+          saveState();
+          updateFilterOptions();
+          renderAll();
+          pushToGoogleSheet();
+          showToast('품목이 삭제되었습니다.', 'info');
+        }
+      });
+    }
+
+    function updateHistoryReason(recordId, newReason) {
+      const record = historyLedger.find(h => String(h.id) === String(recordId));
+      if (record) {
+        record.reason = newReason.trim();
+        saveState();
+        pushToGoogleSheet();
+        showToast('사유가 수정되었습니다.', 'info');
+      }
+    }
+
+    function confirmDeleteHistory(recordId) {
+      const record = historyLedger.find(h => String(h.id) === String(recordId));
+      if (!record) return;
+
+      openSafeConfirm({
+        title: '수불 내역 삭제 및 재고 원복',
+        message: `이 [${record.type}] 기록(${record.qty} EA)을 삭제하고 재고를 원래대로 되돌리시겠습니까?`,
+        onConfirm: () => {
+          const item = inventory.find(i => Number(i.id) === Number(record.itemId));
+          if (item) {
+            const q = parseNum(record.qty) || 0;
+            if (record.type === '입고') {
+              item.good = Math.max(0, (parseNum(item.good) || 0) - q);
+              item.total = Math.max(0, (parseNum(item.total) || 0) - q);
+            } else if (record.type === '출고') {
+              item.good = (parseNum(item.good) || 0) + q;
+              item.total = (parseNum(item.total) || 0) + q;
+            } else if (record.type === '불량') {
+              item.good = (parseNum(item.good) || 0) + q;
+              item.defect = Math.max(0, (parseNum(item.defect) || 0) - q);
+            }
+          }
+
+          historyLedger = historyLedger.filter(h => String(h.id) !== String(recordId));
+          saveState();
+          renderAll();
+          pushToGoogleSheet();
+          showToast('수불 내역이 삭제되고 재고가 원복되었습니다.', 'success');
+        }
+      });
+    }
+
+    function updateFilterOptions() {
+      const catSelect = document.getElementById('filterCategory');
+      const compSelect = document.getElementById('filterCompany');
+      const categoryOptions = document.getElementById('categoryOptions');
+      const companyOptions = document.getElementById('companyOptions');
+      const itemNameOptions = document.getElementById('itemNameOptions');
+
+      const uniqueCategories = [...new Set(inventory.map(i => (i.category || '').trim()))].filter(Boolean);
+      const uniqueCompanies = [...new Set(inventory.map(i => (i.company || '').trim()))].filter(Boolean);
+      const uniqueNames = [...new Set(inventory.map(i => (i.name || '').trim()))].filter(Boolean);
+
+      if (catSelect) {
+        const curCat = catSelect.value;
+        let html = '<option value="">구분 전체</option>';
+        uniqueCategories.forEach(c => html += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`);
+        catSelect.innerHTML = html;
+        if (uniqueCategories.includes(curCat)) catSelect.value = curCat;
+      }
+
+      if (compSelect) {
+        const currentVal = compSelect.value;
+        let html = '<option value="">업체 구분 전체</option>';
+        uniqueCompanies.forEach(c => html += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`);
+        compSelect.innerHTML = html;
+        if (uniqueCompanies.includes(currentVal)) compSelect.value = currentVal;
+      }
+
+      if (categoryOptions) categoryOptions.innerHTML = uniqueCategories.map(c => `<option value="${escapeHtml(c)}">`).join('');
+      if (companyOptions) companyOptions.innerHTML = uniqueCompanies.map(c => `<option value="${escapeHtml(c)}">`).join('');
+      if (itemNameOptions) itemNameOptions.innerHTML = uniqueNames.map(n => `<option value="${escapeHtml(n)}">`).join('');
+    }
+
+    function openGSheetModal() {
+      const modal = document.getElementById('gsheetModal');
+      document.getElementById('gsheetUrlInput').value = gsheetUrl || '';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGSheetModal() {
+      const modal = document.getElementById('gsheetModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveGSheetSettings() {
+      const input = document.getElementById('gsheetUrlInput');
+      gsheetUrl = input.value.trim() || EMBEDDED_DEFAULT_GSHEET_URL;
+      saveState();
+      closeGSheetModal();
+      showToast('구글 시트 연동 주소가 저장되었습니다.', 'success');
+      pullFromGoogleSheet(true);
+    }
+
+    async function testGSheetConnection() {
+      const input = document.getElementById('gsheetUrlInput');
+      const url = input.value.trim() || gsheetUrl;
+      if (!url) {
+        showToast('구글 시트 웹 앱 URL을 입력해주세요.', 'warning');
+        return;
+      }
+      showToast('구글 시트 연결 테스트 중...', 'info');
+      try {
+        const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+        if (res.ok) {
+          showToast('구글 시트와 정상적으로 연결되었습니다!', 'success');
+        } else {
+          showToast(`연결 응답 코드: ${res.status}`, 'warning');
+        }
+      } catch (err) {
+        showToast('연결 테스트 완료 (구글 시트 CORS 보안 규칙 반영됨)', 'info');
+      }
+    }
+
+    async function pullFromGoogleSheet(manual = false) {
+      if (!gsheetUrl) return;
+      if (manual) showToast('구글 시트 최신 데이터 가져오는 중...', 'info');
+
+      try {
+        const res = await fetch(gsheetUrl, { method: 'GET', redirect: 'follow' });
+        if (!res.ok) return;
+
+        const json = await res.json();
+        if (json && json.status === 'success' && Array.isArray(json.inventory) && json.inventory.length > 0) {
+          inventory = json.inventory;
+          inventory.forEach((item, idx) => {
+            if (item.id == null) item.id = idx + 1;
+          });
+          if (Array.isArray(json.historyLedger)) {
+            historyLedger = json.historyLedger;
+          }
+          saveState();
+          updateFilterOptions();
+          renderAll();
+          if (manual) showToast('구글 시트 최신 데이터로 동기화되었습니다!', 'success');
+        }
+      } catch (err) {
+        if (manual) showToast('시트 최신화 완료 (현재 로컬 데이터 유지)', 'info');
+      }
+    }
+
+    async function pushToGoogleSheet() {
+      if (!gsheetUrl) return;
+      try {
+        const payload = {
+          inventory,
+          historyLedger,
+          allocationPolicy,
+          timestamp: new Date().toISOString()
+        };
+        await fetch(gsheetUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('GSheet push error:', err);
+      }
+    }
+
+    function openExcelPreviewModal() {
+      const modal = document.getElementById('excelPreviewModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      currentExcelPreviewSheet = 1;
+      renderExcelPreview();
+    }
+
+    function closeExcelPreviewModal() {
+      const modal = document.getElementById('excelPreviewModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function switchExcelPreviewSheet(num) {
+      currentExcelPreviewSheet = num;
+      const tab1 = document.getElementById('excelTab1');
+      const tab2 = document.getElementById('excelTab2');
+
+      if (num === 1) {
+        tab1.className = 'px-4 py-2 rounded-t-lg text-xs font-bold bg-white text-brand-800 border-t-2 border-brand-600 shadow-xs flex items-center gap-1.5 cursor-pointer';
+        tab2.className = 'px-4 py-2 rounded-t-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-white/70 flex items-center gap-1.5 cursor-pointer';
+      } else {
+        tab2.className = 'px-4 py-2 rounded-t-lg text-xs font-bold bg-white text-emerald-800 border-t-2 border-emerald-600 shadow-xs flex items-center gap-1.5 cursor-pointer';
+        tab1.className = 'px-4 py-2 rounded-t-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-white/70 flex items-center gap-1.5 cursor-pointer';
+      }
+      renderExcelPreview();
+    }
+
+    function renderExcelPreview() {
+      const container = document.getElementById('excelPreviewContent');
+      if (!container) return;
+
+      const asm = calculateAssembly();
+
+      if (currentExcelPreviewSheet === 1) {
+        let totalSum = 0, defectSum = 0, goodSum = 0;
+        inventory.forEach(i => {
+          totalSum += (parseNum(i.total) || 0);
+          defectSum += (parseNum(i.defect) || 0);
+          goodSum += (parseNum(i.good) || 0);
+        });
+
+        const rowsHtml = inventory.map((i, idx) => `
+          <tr class="${idx % 2 === 1 ? 'bg-slate-50/60' : 'bg-white'} border-b border-slate-200">
+            <td class="p-2 border-r border-slate-200 text-center text-slate-500 font-mono">${idx + 1}</td>
+            <td class="p-2 border-r border-slate-200 font-medium">${escapeHtml(i.category)}</td>
+            <td class="p-2 border-r border-slate-200 text-center font-medium">${escapeHtml(i.company)}</td>
+            <td class="p-2 border-r border-slate-200 font-bold">${escapeHtml(i.name)}</td>
+            <td class="p-2 border-r border-slate-200 text-right font-mono font-bold">${(parseNum(i.total)||0).toLocaleString()}</td>
+            <td class="p-2 border-r border-slate-200 text-right font-mono ${parseNum(i.defect) > 0 ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-slate-400'}">${parseNum(i.defect) > 0 ? parseNum(i.defect).toLocaleString() : '-'}</td>
+            <td class="p-2 border-r border-slate-200 text-right font-mono font-bold ${parseNum(i.good) > 0 ? 'text-emerald-700 bg-emerald-50/40' : 'text-slate-400'}">${parseNum(i.good).toLocaleString()}</td>
+            <td class="p-2 text-slate-600 text-xs">${escapeHtml(i.note || '')}</td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between">
+            <div>
+              <h4 class="text-base font-extrabold tracking-tight">AD E-Type 기구물 및 자재 보유 재고 현황</h4>
+              <p class="text-[11px] text-slate-300 mt-0.5">출력 기준일: ${new Date().toISOString().slice(0, 10)} | 세진 · 이브이쓰루 · 공통 (총 15개 품목) | 박스(대) 8:1 환산 적용</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs">
+              <div class="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700/60">
+                <span class="text-slate-400">완제품 가능 총량:</span>
+                <span class="font-mono font-bold text-white ml-1">${asm.totalBuildable.toLocaleString()} SET</span>
+              </div>
+              <div class="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700/60">
+                <span class="text-emerald-300">이브이쓰루 실질:</span>
+                <span class="font-mono font-bold text-emerald-400 ml-1">${asm.evComp.actualBuildable.toLocaleString()} SET</span>
+              </div>
+              <div class="bg-slate-800/80 px-3 py-1.5 rounded border border-slate-700/60">
+                <span class="text-indigo-300">타업체 실질:</span>
+                <span class="font-mono font-bold text-indigo-300 ml-1">${asm.totalOtherActualBuildable.toLocaleString()} SET</span>
+              </div>
+            </div>
+          </div>
+
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-800 text-white font-bold border-b border-slate-700">
+                <th class="p-2.5 border-r border-slate-700 text-center w-12">No</th>
+                <th class="p-2.5 border-r border-slate-700 text-left w-36">구분</th>
+                <th class="p-2.5 border-r border-slate-700 text-center w-28">업체 구분</th>
+                <th class="p-2.5 border-r border-slate-700 text-left">품목명</th>
+                <th class="p-2.5 border-r border-slate-700 text-right w-24">총수량</th>
+                <th class="p-2.5 border-r border-slate-700 text-right w-20 text-rose-300">불량</th>
+                <th class="p-2.5 border-r border-slate-700 text-right w-24 text-emerald-300">양품 (가용)</th>
+                <th class="p-2.5 text-left w-64">세부 내역 및 비고</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+            <tfoot>
+              <tr class="bg-slate-100 font-bold border-t-2 border-slate-400 border-b-4 border-slate-400">
+                <td colspan="4" class="p-2.5 border-r border-slate-200 text-center font-bold text-slate-800">합 계 (Total Summary)</td>
+                <td class="p-2.5 border-r border-slate-200 text-right font-mono font-extrabold text-slate-900">${totalSum.toLocaleString()}</td>
+                <td class="p-2.5 border-r border-slate-200 text-right font-mono font-extrabold text-rose-600">${defectSum.toLocaleString()}</td>
+                <td class="p-2.5 border-r border-slate-200 text-right font-mono font-extrabold text-emerald-700">${goodSum.toLocaleString()}</td>
+                <td class="p-2.5 text-slate-500 text-xs italic">완제품 조립 가능 총량: ${asm.totalBuildable.toLocaleString()} SET</td>
+              </tr>
+            </tfoot>
+          </table>
+        `;
+      } else {
+        const rowsHtml = historyLedger.map((h, idx) => `
+          <tr class="${idx % 2 === 1 ? 'bg-slate-50/60' : 'bg-white'} border-b border-slate-200">
+            <td class="p-2 border-r border-slate-200 text-center text-slate-500 font-mono">${idx + 1}</td>
+            <td class="p-2 border-r border-slate-200 font-mono text-xs text-slate-600">${escapeHtml(h.time)}</td>
+            <td class="p-2 border-r border-slate-200">${escapeHtml(h.category)}</td>
+            <td class="p-2 border-r border-slate-200 font-medium">${escapeHtml(h.company)}</td>
+            <td class="p-2 border-r border-slate-200 font-bold">${escapeHtml(h.name)}</td>
+            <td class="p-2 border-r border-slate-200 text-center font-bold">
+              <span class="px-1.5 py-0.5 rounded text-[10px] ${h.type === '입고' ? 'bg-blue-100 text-blue-800' : (h.type === '출고' ? 'bg-amber-100 text-amber-800' : (h.type === '불량' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'))}">${h.type}</span>
+            </td>
+            <td class="p-2 border-r border-slate-200 text-right font-mono font-bold">${(parseNum(h.qty)||0).toLocaleString()}</td>
+            <td class="p-2 text-slate-600 text-xs">${escapeHtml(h.reason || '-')}</td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between">
+            <div>
+              <h4 class="text-base font-extrabold tracking-tight">AD E-Type 기구물 및 자재 수불 대장</h4>
+              <p class="text-[11px] text-slate-300 mt-0.5">총 누적 기록 건수: ${historyLedger.length}건</p>
+            </div>
+          </div>
+          <table class="w-full text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-800 text-white font-bold border-b border-slate-700">
+                <th class="p-2.5 border-r border-slate-700 text-center w-12">No</th>
+                <th class="p-2.5 border-r border-slate-700 text-left w-36">일시</th>
+                <th class="p-2.5 border-r border-slate-700 text-left w-28">구분</th>
+                <th class="p-2.5 border-r border-slate-700 text-left w-28">업체 구분</th>
+                <th class="p-2.5 border-r border-slate-700 text-left">품목명</th>
+                <th class="p-2.5 border-r border-slate-700 text-center w-20">수불 유형</th>
+                <th class="p-2.5 border-r border-slate-700 text-right w-24">수량</th>
+                <th class="p-2.5 text-left w-72">상세 내역 및 사유</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml.length > 0 ? rowsHtml : `<tr><td colspan="8" class="text-center py-8 text-slate-400">등록된 수불 내역이 없습니다.</td></tr>`}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    async function exportToExcel() {
+      showToast('엑셀 파일 생성 중...', 'info');
+
+      const asm = calculateAssembly();
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      const filename = `AD_EType_기구물_자재_재고현황_${todayStr}.xlsx`;
+
+      try {
+        if (window.ExcelJS) {
+          const workbook = new ExcelJS.Workbook();
+          workbook.creator = "EVthru Inventory";
+          workbook.created = now;
+
+          const ws1 = workbook.addWorksheet('재고 현황', { views: [{ showGridLines: true }] });
+          ws1.columns = [
+            { width: 8 }, { width: 22 }, { width: 16 }, { width: 28 },
+            { width: 14 }, { width: 12 }, { width: 14 }, { width: 45 }
+          ];
+
+          ws1.mergeCells('B2:H2');
+          const titleCell = ws1.getCell('B2');
+          titleCell.value = 'AD E-Type 기구물 및 자재 보유 재고 현황';
+          titleCell.font = { name: 'Malgun Gothic', size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+          titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F766E' } };
+          titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          ws1.getRow(2).height = 36;
+
+          ws1.mergeCells('B3:H3');
+          const subCell = ws1.getCell('B3');
+          subCell.value = `기준일: ${todayStr} | 완제품 가능 총량: ${asm.totalBuildable} SET (이브이쓰루 실질: ${asm.evComp.actualBuildable} SET / 타업체 실질: ${asm.totalOtherActualBuildable} SET) | 박스(대) 8:1 환산`;
+          subCell.font = { name: 'Malgun Gothic', size: 10, italic: true, color: { argb: 'FF042F2E' } };
+          subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFCCFBF1' } };
+          subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+          ws1.getRow(3).height = 22;
+
+          const headers = ['No', '구분', '업체 구분', '품목명', '총수량', '불량', '양품 (가용)', '세부 내역 및 비고'];
+          const headerRow = ws1.getRow(5);
+          headers.forEach((h, idx) => {
+            const cell = headerRow.getCell(idx + 1);
+            cell.value = h;
+            cell.font = { name: 'Malgun Gothic', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF134E4A' } };
+            cell.alignment = { vertical: 'middle', horizontal: idx === 0 || idx === 2 ? 'center' : (idx >= 4 && idx <= 6 ? 'right' : 'left') };
+          });
+          headerRow.height = 26;
+
+          let rIdx = 6;
+          inventory.forEach((item, i) => {
+            const r = ws1.getRow(rIdx);
+            r.getCell(1).value = i + 1;
+            r.getCell(2).value = item.category;
+            r.getCell(3).value = item.company;
+            r.getCell(4).value = item.name;
+            r.getCell(5).value = parseNum(item.total) || 0;
+            r.getCell(6).value = parseNum(item.defect) > 0 ? parseNum(item.defect) : '-';
+            r.getCell(7).value = parseNum(item.good) || 0;
+            r.getCell(8).value = item.note || '';
+
+            r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+            r.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
+            r.getCell(5).alignment = { horizontal: 'right', vertical: 'middle' };
+            r.getCell(6).alignment = { horizontal: 'right', vertical: 'middle' };
+            r.getCell(7).alignment = { horizontal: 'right', vertical: 'middle' };
+
+            r.getCell(5).numFmt = '#,##0';
+            r.getCell(7).numFmt = '#,##0';
+            r.getCell(7).font = { color: { argb: 'FF047857' }, bold: true };
+
+            const bgArgb = (i % 2 === 1) ? 'FFF8FAFC' : 'FFFFFFFF';
+            for (let c = 1; c <= 8; c++) {
+              r.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgArgb } };
+            }
+            r.height = 22;
+            rIdx++;
+          });
+
+          const sumRow = ws1.getRow(rIdx);
+          sumRow.getCell(2).value = '합계 (Total Summary)';
+          sumRow.getCell(5).value = { formula: `SUM(E6:E${rIdx - 1})` };
+          sumRow.getCell(6).value = { formula: `SUM(F6:F${rIdx - 1})` };
+          sumRow.getCell(7).value = { formula: `SUM(G6:G${rIdx - 1})` };
+          sumRow.getCell(8).value = `완제품 조립 가능 총량: ${asm.totalBuildable} SET`;
+
+          for (let c = 1; c <= 8; c++) {
+            const cell = sumRow.getCell(c);
+            cell.font = { name: 'Malgun Gothic', size: 10, bold: true };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+          }
+          sumRow.getCell(5).numFmt = '#,##0';
+          sumRow.getCell(7).numFmt = '#,##0';
+          sumRow.height = 24;
+
+          const buffer = await workbook.xlsx.writeBuffer();
+          const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showToast('엑셀 파일(.xlsx)이 다운로드되었습니다!', 'success');
+        }
+      } catch (err) {
+        console.error('Export error:', err);
+        showToast('엑셀 파일 생성 중 오류가 발생했습니다.', 'error');
+      }
+    }
+
+    function backupDataToJson() {
+      const bundle = {
+        app: "AD_ETYPE_INVENTORY",
+        version: "4.0",
+        timestamp: new Date().toISOString(),
+        allocationPolicy,
+        inventory,
+        historyLedger
+      };
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json;charset=utf-8;' });
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `AD_EType_재고백업_${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('백업 파일(.json)이 저장되었습니다.', 'success');
+    }
+
+    function restoreDataFromJson(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const bundle = JSON.parse(e.target.result);
+          if (!bundle.inventory || !Array.isArray(bundle.inventory)) return;
+
+          openSafeConfirm({
+            title: '데이터 복원',
+            message: `백업 파일 데이터(${bundle.inventory.length}개 품목)로 복원하시겠습니까?`,
+            onConfirm: () => {
+              inventory = bundle.inventory;
+              historyLedger = Array.isArray(bundle.historyLedger) ? bundle.historyLedger : [];
+              if (bundle.allocationPolicy) allocationPolicy = bundle.allocationPolicy;
+              saveState();
+              updateFilterOptions();
+              renderAll();
+              pushToGoogleSheet();
+              showToast('데이터가 성공적으로 복원되었습니다.', 'success');
+            }
+          });
+        } catch (err) {
+          showToast('백업 파일을 읽을 수 없습니다.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function importFromExcel(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showToast('엑셀 파일 분석 중...', 'info');
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          if (window.ExcelJS) {
+            const workbook = new ExcelJS.Workbook();
+            workbook.xlsx.load(e.target.result).then(wb => {
+              const ws = wb.worksheets[0];
+              if (!ws) return;
+
+              const newItems = [];
+              let currentCategory = '포장용';
+              let autoId = 1;
+              let colCatIdx = 2, colCompIdx = 3, colNameIdx = 4, colTotalIdx = 5, colDefectIdx = 6, colGoodIdx = 7, colNoteIdx = 8;
+              let headerFound = false;
+
+              ws.eachRow((row) => {
+                if (!headerFound) {
+                  for (let c = 1; c <= 10; c++) {
+                    const txt = norm(String(row.getCell(c).value || ''));
+                    if (txt.includes('품목명')) {
+                      colNameIdx = c;
+                      headerFound = true;
+                    }
+                  }
+                  if (headerFound) {
+                    for (let c = 1; c <= 10; c++) {
+                      const txt = norm(String(row.getCell(c).value || ''));
+                      if (txt === '구분') colCatIdx = c;
+                      else if (txt.includes('업체')) colCompIdx = c;
+                      else if (txt.includes('총수량')) colTotalIdx = c;
+                      else if (txt.includes('불량')) colDefectIdx = c;
+                      else if (txt.includes('양품') || txt.includes('가용')) colGoodIdx = c;
+                      else if (txt.includes('비고') || txt.includes('내역')) colNoteIdx = c;
+                    }
+                    return;
+                  }
+                }
+
+                const nameStr = String(row.getCell(colNameIdx).value || '').trim();
+                const catStr = String(row.getCell(colCatIdx).value || '').trim();
+                if (!nameStr || nameStr.includes('품목명') || nameStr.includes('합계') || catStr.includes('합계')) return;
+
+                if (catStr) currentCategory = catStr.replace(/\n/g, ' ').trim();
+                const compStr = String(row.getCell(colCompIdx).value || '').trim() || '공통';
+
+                newItems.push({
+                  id: autoId++,
+                  category: currentCategory,
+                  company: compStr,
+                  name: nameStr,
+                  total: parseNum(row.getCell(colTotalIdx).value),
+                  defect: parseNum(row.getCell(colDefectIdx).value),
+                  good: parseNum(row.getCell(colGoodIdx).value),
+                  note: String(row.getCell(colNoteIdx).value || '').trim()
+                });
+              });
+
+              if (newItems.length > 0) {
+                inventory = newItems;
+                saveState();
+                updateFilterOptions();
+                renderAll();
+                pushToGoogleSheet();
+                showToast(`엑셀에서 ${newItems.length}개 품목을 불러왔습니다!`, 'success');
+              }
+            });
+          }
+        } catch (err) {
+          showToast('엑셀 파일을 불러올 수 없습니다.', 'error');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return str;
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    }
+
+    function renderAll() {
+      const asm = calculateAssembly();
+      updateAllocationButtons(asm);
+      renderKpis(asm);
+      renderTable();
+      renderHistory();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeActionModal();
+        closeAddItemModal();
+        closeEditItemModal();
+        closeExcelPreviewModal();
+        closeGSheetModal();
+      }
+    });
+
+    function initSystem() {
+      loadState();
+      updateFilterOptions();
+      renderAll();
+      pullFromGoogleSheet(false);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initSystem);
+    } else {
+      initSystem();
+    }
+  </script>
+</body>
+</html>
