@@ -309,6 +309,7 @@
           <button onclick="setHistoryFilter('ALL', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-bold bg-slate-800 text-white">전체</button>
           <button onclick="setHistoryFilter('출고', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">출고만</button>
           <button onclick="setHistoryFilter('불량', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">불량만</button>
+          <button onclick="setHistoryFilter('불량출고', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">불량출고만</button>
           <button onclick="setHistoryFilter('입고', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">입고만</button>
           <button onclick="setHistoryFilter('재고조정', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">재고조정만</button>
           <button onclick="setHistoryFilter('신규등록', this)" class="hist-filter-btn px-2.5 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">신규등록만</button>
@@ -351,6 +352,15 @@
       <div class="my-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80">
         <div id="modalItemHeader" class="text-xs font-bold text-slate-800"></div>
         <div id="modalItemStock" class="text-[11px] text-slate-500 mt-1"></div>
+      </div>
+
+      <div id="defectModeToggle" class="hidden grid grid-cols-2 gap-2 mb-3.5">
+        <button type="button" id="btnDefectRegister" onclick="setDefectActionMode('DEFECT')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+          <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 불량 등록
+        </button>
+        <button type="button" id="btnDefectOut" onclick="setDefectActionMode('DEFECT_OUT')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+          <i class="fa-solid fa-arrow-up-from-bracket text-[10px]"></i> 불량 출고
+        </button>
       </div>
 
       <div class="space-y-3.5">
@@ -532,7 +542,7 @@
       <div class="space-y-3.5">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1.5">수불 유형 변경</label>
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button type="button" id="btnTypeIn" onclick="setEditHistoryType('입고')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
               <i class="fa-solid fa-arrow-down text-[10px]"></i> 입고
             </button>
@@ -541,6 +551,9 @@
             </button>
             <button type="button" id="btnTypeDefect" onclick="setEditHistoryType('불량')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
               <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> 불량
+            </button>
+            <button type="button" id="btnTypeDefectOut" onclick="setEditHistoryType('불량출고')" class="py-2 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-arrow-up-from-bracket text-[10px]"></i> 불량출고
             </button>
           </div>
         </div>
@@ -1657,11 +1670,12 @@
         if (h.type === '입고') typeBadge = '<span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-1.5 py-0.5 rounded">입고</span>';
         else if (h.type === '출고') typeBadge = '<span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded">출고</span>';
         else if (h.type === '불량') typeBadge = '<span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.5 rounded">불량</span>';
+        else if (h.type === '불량출고') typeBadge = '<span class="text-[10px] bg-orange-100 text-orange-800 font-bold px-1.5 py-0.5 rounded">불량출고</span>';
         else if (h.type === '신규등록') typeBadge = '<span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">신규등록</span>';
         else if (h.type === '재고조정') typeBadge = '<span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.5 rounded">재고조정</span>';
         else typeBadge = `<span class="text-[10px] bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded">${escapeHtml(h.type)}</span>`;
 
-        const isEditableType = (h.type === '입고' || h.type === '출고' || h.type === '불량');
+        const isEditableType = (h.type === '입고' || h.type === '출고' || h.type === '불량' || h.type === '불량출고');
         const safeId = escapeHtml(String(h.id));
 
         return `
@@ -1707,6 +1721,36 @@
       renderHistory();
     }
 
+    function setDefectActionMode(mode) {
+      if (!activeAction) return;
+      activeAction.type = mode;
+
+      const titleEl = document.getElementById('modalActionTitle');
+      const reasonLabel = document.getElementById('modalReasonLabel');
+      const reasonInput = document.getElementById('modalReasonInput');
+      const submitBtn = document.getElementById('modalSubmitBtn');
+      const btnReg = document.getElementById('btnDefectRegister');
+      const btnOut = document.getElementById('btnDefectOut');
+
+      if (mode === 'DEFECT_OUT') {
+        titleEl.textContent = '불량 출고 (불량 & 총수량 차감, 양품 유지)';
+        reasonLabel.textContent = '불량 출고 상세 내역 / 사유 (권장)';
+        reasonInput.placeholder = '예: 타 공장 재작업 확인 발송 등 상세 사유 입력';
+        submitBtn.className = 'px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs cursor-pointer';
+        submitBtn.textContent = '불량 출고';
+        if (btnReg) btnReg.className = 'py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer';
+        if (btnOut) btnOut.className = 'py-2 rounded-xl border border-orange-500 bg-orange-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+      } else {
+        titleEl.textContent = '불량 등록 (양품 차감, 불량 증가, 총수량 유지)';
+        reasonLabel.textContent = '불량 상세 증상 및 사유 (권장)';
+        reasonInput.placeholder = '예: 체결부 파손, 사출 버(Burr) 불량';
+        submitBtn.className = 'px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer';
+        submitBtn.textContent = '불량 등록';
+        if (btnReg) btnReg.className = 'py-2 rounded-xl border border-rose-500 bg-rose-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+        if (btnOut) btnOut.className = 'py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer';
+      }
+    }
+
     function openActionModal(type, id) {
       const item = inventory.find(i => Number(i.id) === Number(id));
       if (!item) return;
@@ -1720,6 +1764,7 @@
       const reasonInput = document.getElementById('modalReasonInput');
       const qtyInput = document.getElementById('modalQtyInput');
       const submitBtn = document.getElementById('modalSubmitBtn');
+      const defectToggle = document.getElementById('defectModeToggle');
 
       qtyInput.value = '';
       reasonInput.value = '';
@@ -1728,23 +1773,22 @@
       stockEl.textContent = `가용 양품: ${parseNum(item.good).toLocaleString()} EA | 불량: ${parseNum(item.defect).toLocaleString()} EA | 총수량: ${parseNum(item.total).toLocaleString()} EA`;
 
       if (type === 'IN') {
+        if (defectToggle) defectToggle.classList.add('hidden');
         titleEl.textContent = '입고 등록 (양품 & 총수량 동시 증가)';
         reasonLabel.textContent = '입고 상세 내역 (선택)';
         reasonInput.placeholder = '예: 사출 납품 입고, 거래처 입고';
         submitBtn.className = 'px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs cursor-pointer';
         submitBtn.textContent = '입고 처리';
       } else if (type === 'OUT') {
+        if (defectToggle) defectToggle.classList.add('hidden');
         titleEl.textContent = '출고 등록 (양품 & 총수량 동시 차감)';
         reasonLabel.textContent = '출고 상세 내역 / 사유 (권장)';
         reasonInput.placeholder = '예: 완제품 조립 투입, 현장 출하';
         submitBtn.className = 'px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs cursor-pointer';
         submitBtn.textContent = '출고 처리';
       } else if (type === 'DEFECT') {
-        titleEl.textContent = '불량 등록 (양품 차감, 불량 증가, 총수량 유지)';
-        reasonLabel.textContent = '불량 상세 증상 및 사유 (권장)';
-        reasonInput.placeholder = '예: 체결부 파손, 사출 버(Burr) 불량';
-        submitBtn.className = 'px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs cursor-pointer';
-        submitBtn.textContent = '불량 등록';
+        if (defectToggle) defectToggle.classList.remove('hidden');
+        setDefectActionMode('DEFECT');
       }
 
       modal.classList.remove('hidden');
@@ -1834,6 +1878,27 @@
           reason: reason || '불량 판정'
         });
         showToast(`[${item.company}] ${item.name} ${qty} EA 불량 등록 완료`, 'warning');
+      } else if (activeAction.type === 'DEFECT_OUT') {
+        const curDefect = parseNum(item.defect) || 0;
+        if (qty > curDefect) {
+          showToast(`보유 불량 수량(${curDefect} EA)을 초과하여 불량 출고할 수 없습니다.`, 'error');
+          qtyInput.focus();
+          return;
+        }
+        item.defect = curDefect - qty;
+        item.total = (parseNum(item.good) || 0) + item.defect;
+        historyLedger.unshift({
+          id: recordId,
+          itemId: item.id,
+          time: timeStr,
+          category: item.category,
+          company: item.company,
+          name: item.name,
+          type: '불량출고',
+          qty: qty,
+          reason: reason || '불량 출고'
+        });
+        showToast(`[${item.company}] ${item.name} ${qty} EA 불량 출고 완료`, 'warning');
       }
 
       saveState();
@@ -2043,8 +2108,8 @@
     function openEditHistoryModal(recordId) {
       const record = historyLedger.find(h => String(h.id) === String(recordId));
       if (!record) return;
-      if (record.type !== '입고' && record.type !== '출고' && record.type !== '불량') {
-        showToast('입고, 출고, 불량 이력만 유형/수량 수정이 가능합니다.', 'info');
+      if (record.type !== '입고' && record.type !== '출고' && record.type !== '불량' && record.type !== '불량출고') {
+        showToast('입고, 출고, 불량, 불량출고 이력만 유형/수량 수정이 가능합니다.', 'info');
         return;
       }
 
@@ -2079,17 +2144,20 @@
       const btnIn = document.getElementById('btnTypeIn');
       const btnOut = document.getElementById('btnTypeOut');
       const btnDefect = document.getElementById('btnTypeDefect');
+      const btnDefectOut = document.getElementById('btnTypeDefectOut');
 
-      [btnIn, btnOut, btnDefect].forEach(btn => {
-        btn.className = 'py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer';
+      [btnIn, btnOut, btnDefect, btnDefectOut].forEach(btn => {
+        if (btn) btn.className = 'py-2 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 transition flex items-center justify-center gap-1 cursor-pointer';
       });
 
-      if (selectedEditHistoryType === '입고') {
+      if (selectedEditHistoryType === '입고' && btnIn) {
         btnIn.className = 'py-2 rounded-xl border border-blue-500 bg-blue-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
-      } else if (selectedEditHistoryType === '출고') {
+      } else if (selectedEditHistoryType === '출고' && btnOut) {
         btnOut.className = 'py-2 rounded-xl border border-amber-500 bg-amber-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
-      } else if (selectedEditHistoryType === '불량') {
+      } else if (selectedEditHistoryType === '불량' && btnDefect) {
         btnDefect.className = 'py-2 rounded-xl border border-rose-500 bg-rose-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
+      } else if (selectedEditHistoryType === '불량출고' && btnDefectOut) {
+        btnDefectOut.className = 'py-2 rounded-xl border border-orange-500 bg-orange-600 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1 cursor-pointer';
       }
     }
 
@@ -2119,6 +2187,8 @@
         } else if (record.type === '불량') {
           simGood = simGood + oldQ;
           simDefect = Math.max(0, simDefect - oldQ);
+        } else if (record.type === '불량출고') {
+          simDefect = simDefect + oldQ;
         }
 
         if (selectedEditHistoryType === '입고') {
@@ -2136,6 +2206,12 @@
           }
           simGood = simGood - newQty;
           simDefect = simDefect + newQty;
+        } else if (selectedEditHistoryType === '불량출고') {
+          if (newQty > simDefect) {
+            showToast(`보유 불량 수량(${simDefect} EA)을 초과하여 불량 출고할 수 없습니다.`, 'error');
+            return;
+          }
+          simDefect = simDefect - newQty;
         }
 
         item.good = simGood;
@@ -2168,7 +2244,7 @@
       const record = historyLedger.find(h => String(h.id) === String(recordId));
       if (!record) return;
 
-      const isReversible = (record.type === '입고' || record.type === '출고' || record.type === '불량');
+      const isReversible = (record.type === '입고' || record.type === '출고' || record.type === '불량' || record.type === '불량출고');
 
       openSafeConfirm({
         title: isReversible ? '수불 내역 삭제 및 재고 원복' : '이력 기록 삭제',
@@ -2187,6 +2263,8 @@
               } else if (record.type === '불량') {
                 item.good = (parseNum(item.good) || 0) + q;
                 item.defect = Math.max(0, (parseNum(item.defect) || 0) - q);
+              } else if (record.type === '불량출고') {
+                item.defect = (parseNum(item.defect) || 0) + q;
               }
               item.total = (parseNum(item.good) || 0) + (parseNum(item.defect) || 0);
             }
@@ -2346,7 +2424,7 @@
             <td class="p-2 border-r border-slate-200 font-medium">${escapeHtml(h.company)}</td>
             <td class="p-2 border-r border-slate-200 font-bold">${escapeHtml(h.name)}</td>
             <td class="p-2 border-r border-slate-200 text-center font-bold">
-              <span class="px-1.5 py-0.5 rounded text-[10px] ${h.type === '입고' ? 'bg-blue-100 text-blue-800' : (h.type === '출고' ? 'bg-amber-100 text-amber-800' : (h.type === '불량' ? 'bg-rose-100 text-rose-800' : (h.type === '재고조정' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800')))}">${escapeHtml(h.type)}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] ${h.type === '입고' ? 'bg-blue-100 text-blue-800' : (h.type === '출고' ? 'bg-amber-100 text-amber-800' : (h.type === '불량' ? 'bg-rose-100 text-rose-800' : (h.type === '불량출고' ? 'bg-orange-100 text-orange-800' : (h.type === '재고조정' ? 'bg-purple-100 text-purple-800' : 'bg-emerald-100 text-emerald-800'))))}">${escapeHtml(h.type)}</span>
             </td>
             <td class="p-2 border-r border-slate-200 text-right font-mono font-bold">${(parseNum(h.qty)||0).toLocaleString()}</td>
             <td class="p-2 text-slate-600 text-xs">${escapeHtml(cleanNote(h.reason) || '-')}</td>
